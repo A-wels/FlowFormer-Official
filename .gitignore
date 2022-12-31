@@ -1,3 +1,4 @@
+demo_data
 *.pyc
 *.egg-info
 dist
@@ -8,3 +9,4 @@ build
 correlation.egg-info
 logs
 checkpoints*
+.venv
