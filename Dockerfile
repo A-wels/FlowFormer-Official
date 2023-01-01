@@ -35,6 +35,6 @@ RUN cd ~ &&\
 	rm -r FlowFormer-Models && \
 	rm FlowFormer-Models-20221231T113622Z-001.zip  && \
 	cd ..  && \
-	mkdir demo_data && \
+	mkdir demo_data
 
-	ENTRYPOINT ["/bin/bash"]
+ENTRYPOINT ["/bin/bash"]
