@@ -47,6 +47,10 @@ conda install pytorch=1.6.0 torchvision=0.7.0 cudatoolkit=10.1 matplotlib tensor
 pip install yacs loguru einops timm==0.4.12 imageio
 ```
 
+### Docker
+Start docker container with
+``` docker run -t -gpus all -d --name flowformer flowformer ``` and enter with ```docker exec -it flowformer /bin/bash```
+
 ## Training
 The script will load the config according to the training stage. The trained model will be saved in a directory in `logs` and `checkpoints`. For example, the following script will load the config `configs/default.py`. The trained model will be saved as `logs/xxxx/final` and `checkpoints/chairs.pth`.
 ```shell
