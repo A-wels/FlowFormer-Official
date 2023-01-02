@@ -19,7 +19,8 @@ RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86
 	/bin/bash ~/miniconda.sh -b -p /opt/conda && \
 	conda init bash && \
 	conda install -c anaconda -y python=3.7.15 &&\
-	conda install -y pytorch=1.6.0 torchvision=0.7.0 cudatoolkit=10.1 matplotlib tensorboard scipy opencv -c pytorch  && \
+	#conda install -y pytorch=1.6.0 torchvision=0.7.0 cudatoolkit=10.1 matplotlib tensorboard scipy opencv -c pytorch  && \
+	conda install -y pytorch torchvision cudatoolkit=10.1 matplotlib tensorboard scipy opencv -c pytorch  && \
 	pip install yacs loguru einops timm==0.4.12 imageio && \
 	cd ~ &&\
 	git clone https://github.com/A-Wels/FlowFormer-Official && \
@@ -31,9 +32,13 @@ RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86
 	mv FlowFormer-Models/* . &&\
 	rm -r FlowFormer-Models && \
 	rm FlowFormer-Models-20221231T113622Z-001.zip  && \
-	wget https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-vt3p-weights/twins_svt_large-90f6aaa9.pth && \
 	cd ..  && \
 	mkdir demo_data && \
 	cd ~ && rm miniconda.sh && \
+	mkdir /root/.cache/torch && \
+	mkdir /root/.cache/torch/hub && \
+	mkdir /root/.cache/torch/hub/checkpoints && \
+	cd /root/.cache/torch/hub/checkpoints && \
+	wget https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-vt3p-weights/twins_svt_large-90f6aaa9.pth && \
 	apt-get purge -y build-essential wget unzip git
 ENTRYPOINT ["/bin/bash"]
