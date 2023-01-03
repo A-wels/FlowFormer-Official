@@ -20,7 +20,7 @@ RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86
 	conda init bash && \
 	conda install -c anaconda -y python=3.7.15 &&\
 	#conda install -y pytorch=1.6.0 torchvision=0.7.0 cudatoolkit=10.1 matplotlib tensorboard scipy opencv -c pytorch  && \
-	conda install -y pytorch torchvision cudatoolkit matplotlib tensorboard scipy opencv -c pytorch  && \
+	conda install -y pytorch torchvision cudatoolkit pytorch-cuda matplotlib tensorboard scipy opencv -c pytorch -c nvidia  && \
 	pip install yacs loguru einops timm==0.4.12 imageio && \
 	cd ~ &&\
 	git clone https://github.com/A-Wels/FlowFormer-Official && \
