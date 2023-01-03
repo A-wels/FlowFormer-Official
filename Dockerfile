@@ -17,12 +17,13 @@ RUN apt-get update && \
 ENV PATH=$CONDA_DIR/bin:$PATH
 RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
 	/bin/bash ~/miniconda.sh -b -p /opt/conda && \
-	conda init bash && \
-	conda install -c anaconda -y python=3.7.15 &&\
-	#conda install -y pytorch=1.6.0 torchvision=0.7.0 cudatoolkit=10.1 matplotlib tensorboard scipy opencv -c pytorch  && \
-	conda install -y pytorch torchvision cudatoolkit pytorch-cuda matplotlib tensorboard scipy opencv -c pytorch -c nvidia  && \
-	pip install yacs loguru einops timm==0.4.12 imageio && \
-	cd ~ &&\
+	conda init bash
+RUN	conda install -c anaconda -y python=3.7.15
+RUN conda install -y pytorch=1.6.0 torchvision=0.7.0 cudatoolkit=11.4.0 matplotlib tensorboard scipy opencv -c pytorch -c nvidia
+#RUN conda install pytorch-gpu torchvision pytorch-cuda=11.6 -c pytorch -c nvidia
+RUN	conda install -y  matplotlib tensorboard scipy opencv -c pytorch
+RUN	pip install yacs loguru einops timm==0.4.12 imageio
+RUN	cd ~ &&\
 	git clone https://github.com/A-Wels/FlowFormer-Official && \
 	cd FlowFormer-Official && \
 	mkdir checkpoints && \
