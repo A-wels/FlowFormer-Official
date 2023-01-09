@@ -34,7 +34,6 @@ def readFlow(fn):
 def convert_mvf_to_flo(mvf_file) -> str:
     mvf = np.fromfile(mvf_file, dtype=np.float32)
     mvf = np.reshape(mvf, [*[344,127],2], order='F')
-    height, width, channels = mvf.shape
     flo_name = mvf_file.replace('.mvf', '.flo')
     writeFlow(flo_name, mvf)
     return flo_name
@@ -145,7 +144,7 @@ def read_gen(file_name, pil=False):
             return flow[:, :, :-1]
     elif ext == '.v':
         # create image from generated data
-        return np.reshape(np.fromfile(file_name, 'float32'),[344,127], order='F')
+        return np.reshape(np.fromfile(file_name, 'float32'),[344,127])
     elif ext == '.mvf':
         flo_name = file_name.replace('.mvf', '.flo')
         if os.path.exists(flo_name):

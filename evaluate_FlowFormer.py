@@ -57,10 +57,7 @@ def validate_pet(model):
         padder = InputPadder(image1.shape)
         image1, image2 = padder.pad(image1, image2)
 
-
         flow_pre, _ = model(image1, image2)
-
-        flow_pre_cpu = flow_pre[0].cpu()
         flow_pre = padder.unpad(flow_pre[0]).cpu()[0]
 
         epe = torch.sum((flow_pre[0].cpu() - flow_gt)**2, dim=0).sqrt()
