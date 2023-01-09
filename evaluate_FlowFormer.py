@@ -54,12 +54,14 @@ def validate_pet(model):
         image1, image2, flow_gt, _ = val_dataset[val_id]
         image1 = image1[None].cuda()
         image2 = image2[None].cuda()
+        padder = InputPadder(image1.shape)
+        image1, image2 = padder.pad(image1, image2)
+
+
         flow_pre, _ = model(image1, image2)
 
         flow_pre_cpu = flow_pre[0].cpu()
-        print(flow_pre_cpu.shape)
-        print(flow_gt.shape)
-        print(flow_pre_cpu - flow_gt)
+        flow_pre = padder.unpad(flow_pre[0]).cpu()[0]
 
         epe = torch.sum((flow_pre[0].cpu() - flow_gt)**2, dim=0).sqrt()
         epe_list.append(epe.view(-1).numpy())
