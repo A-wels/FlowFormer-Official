@@ -43,6 +43,31 @@ def validate_chairs(model):
     print("Validation Chairs EPE: %f" % epe)
     return {'chairs': epe}
 
+@torch.no_grad()
+def validate_pet(model):
+    """ Perform evaluation on the pet scan (test) split """
+    model.eval()
+    epe_list = []
+
+    val_dataset = datasets.PET(split='validation')
+    for val_id in range(len(val_dataset)):
+        image1, image2, flow_gt, _ = val_dataset[val_id]
+        image1 = image1[None].cuda()
+        image2 = image2[None].cuda()
+        flow_pre, _ = model(image1, image2)
+
+        flow_pre_cpu = flow_pre[0].cpu()
+        print(flow_pre_cpu.shape)
+        print(flow_gt.shape)
+        print(flow_pre_cpu - flow_gt)
+
+        epe = torch.sum((flow_pre[0].cpu() - flow_gt)**2, dim=0).sqrt()
+        epe_list.append(epe.view(-1).numpy())
+
+    epe = np.mean(np.concatenate(epe_list))
+    print("Validation PET EPE: %f" % epe)
+    return {'pet': epe}
+
 
 @torch.no_grad()
 def validate_sintel(model):
@@ -162,12 +187,14 @@ if __name__ == '__main__':
         cfg = get_small_things_cfg()
     else:
         cfg = get_things_cfg()
-    cfg.update(vars(args))
+
+    # TODO CHECKOUT UPDATE
+    #cfg.update(vars(args))
 
     model = torch.nn.DataParallel(build_flowformer(cfg))
+
     model.load_state_dict(torch.load(cfg.model))
 
-    print(args)
 
     model.cuda()
     model.eval()
@@ -188,4 +215,5 @@ if __name__ == '__main__':
         elif args.dataset == 'sintel_submission':
             create_sintel_submission(model.module)
 
-
+        elif args.dataset == 'pet':
+            validate_pet(model.module)

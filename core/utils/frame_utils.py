@@ -2,8 +2,9 @@ import numpy as np
 from PIL import Image
 from os.path import *
 import re
-
+import os
 import cv2
+
 cv2.setNumThreads(0)
 cv2.ocl.setUseOpenCL(False)
 
@@ -29,6 +30,14 @@ def readFlow(fn):
             # Reshape data into 3D array (columns, rows, bands)
             # The reshape here is for visualization, the original code is (w,h,2)
             return np.resize(data, (int(h), int(w), 2))
+
+def convert_mvf_to_flo(mvf_file) -> str:
+    mvf = np.fromfile(mvf_file, dtype=np.float32)
+    mvf = np.reshape(mvf, [*[344,127],2], order='F')
+    height, width, channels = mvf.shape
+    flo_name = mvf_file.replace('.mvf', '.flo')
+    writeFlow(flo_name, mvf)
+    return flo_name
 
 def readPFM(file):
     file = open(file, 'rb')
@@ -134,4 +143,13 @@ def read_gen(file_name, pil=False):
             return flow
         else:
             return flow[:, :, :-1]
+    elif ext == '.v':
+        # create image from generated data
+        return np.reshape(np.fromfile(file_name, 'float32'),[344,127], order='F')
+    elif ext == '.mvf':
+        flo_name = file_name.replace('.mvf', '.flo')
+        if os.path.exists(flo_name):
+         return readFlow(flo_name).astype(np.float32)
+        else:
+            return read_gen(convert_mvf_to_flo(file_name))
     return []

@@ -78,7 +78,6 @@ class FlowDataset(data.Dataset):
                     img1, img2, flow, valid)
             else:
                 img1, img2, flow = self.augmentor(img1, img2, flow)
-
         img1 = torch.from_numpy(img1).permute(2, 0, 1).float()
         img2 = torch.from_numpy(img2).permute(2, 0, 1).float()
         flow = torch.from_numpy(flow).permute(2, 0, 1).float()
@@ -136,19 +135,23 @@ class FlyingChairs(FlowDataset):
 
 
 class PET(FlowDataset):
-    def __init__(self, aug_params=None, split='train', root='datasets/PET/data'):
+     def __init__(self, aug_params=None, split='training', root='datasets/pet', dstype='clean'):
         super(PET, self).__init__(aug_params)
+        flow_root = osp.join(root, split, 'flow')
+        image_root = osp.join(root, split, dstype)
 
-        images = sorted(glob(osp.join(root, '*.v')))
-        flows = sorted(glob(osp.join(root, '*.mvf')))
-        assert (len(images)//2 == len(flows))
+        if split == 'test':
+            self.is_test = True
 
-        split_list = np.loadtxt('pet_split.txt', dtype=np.int32)
-        for i in range(len(flows)):
-            xid = split_list[i]
-            if (split == 'training' and xid == 1) or (split == 'validation' and xid == 2):
-                self.flow_list += [flows[i]]
-                self.image_list += [[images[2*i], images[2*i+1]]]
+        for scene in os.listdir(image_root):
+            image_list = sorted(glob(osp.join(image_root, scene, '*.v')))
+            for i in range(len(image_list)-1):
+                self.image_list += [[image_list[i], image_list[i+1]]]
+                self.extra_info += [(scene, i)]  # scene and frame_id
+
+            if split != 'test':
+                self.flow_list += sorted(glob(osp.join(flow_root,
+                                         scene, '*.mvf')))
 
 
 class FlyingThings3D(FlowDataset):
