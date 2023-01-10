@@ -10,3 +10,4 @@ correlation.egg-info
 logs
 checkpoints*
 .venv
+viz_results
