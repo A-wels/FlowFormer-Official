@@ -113,6 +113,8 @@ def train(cfg):
                         results.update(evaluate.validate_sintel(model.module))
                     elif val_dataset == 'kitti':
                         results.update(evaluate.validate_kitti(model.module))
+                    elif val_dataset == 'pet':
+                        results.update(evaluate.validate_pet(model.module))
 
                 logger.write_dict(results)
                 
@@ -153,6 +155,8 @@ if __name__ == '__main__':
         from configs.kitti import get_cfg
     elif args.stage == 'autoflow':
         from configs.autoflow import get_cfg
+    elif args.stage == 'pet':
+        from configs.pet import get_cfg
 
     cfg = get_cfg()
     cfg.update(vars(args))

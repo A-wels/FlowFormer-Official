@@ -259,6 +259,11 @@ def fetch_dataloader(args, TRAIN_DS='C+T+K+S+H'):
         aug_params = {'crop_size': args.image_size,
                       'min_scale': -0.2, 'max_scale': 0.4, 'do_flip': False}
         train_dataset = KITTI(aug_params, split='training')
+    
+    elif args.stage == 'pet':
+        aug_params = {'crop_size': args.image_size,
+                      'min_scale': -0.2, 'max_scale': 0.4, 'do_flip': False}
+        train_dataset = PET(aug_params, split='training')
 
     train_loader = data.DataLoader(train_dataset, batch_size=args.batch_size,
                                    pin_memory=False, shuffle=True, num_workers=128, drop_last=True)
