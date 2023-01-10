@@ -32,16 +32,17 @@ def visualize_flow(viz_root_dir,gt_dir):
 
     for flowfile in [f for f in os.listdir(gt_dir) if f.endswith(".mvf")]:
         flow = read_gen(os.path.join(gt_dir,flowfile))
+
         flow_img = flow_viz.flow_to_image(flow)
         output_path = os.path.join(viz_root_dir,flowfile.replace(".mvf", ".png"))
         print(output_path)
-        cv2.imwrite(output_path, flow_img)
+        cv2.imwrite(output_path, np.swapaxes(flow_img, 0, 1))
 
    
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--gt_dir', default='/home/alex/Development/master/FlowFormer-Official/datasets/pet/validation/flow/000288/')
+    parser.add_argument('--gt_dir', default='/home/alex/Development/master/FlowFormer-Official/datasets/pet/validation/flow/000001_142')
     parser.add_argument('--viz_root_dir', default='viz_results')
 
     args = parser.parse_args()

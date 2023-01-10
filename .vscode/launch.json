@@ -8,10 +8,10 @@
             "name": "Python: Aktuelle Datei",
             "type": "python",
             "request": "launch",
-            "program": "/home/alex/Development/master/FlowFormer-Official/visualize_flow.py",
+            "program": "/home/alex/Development/master/FlowFormer-Official/visualize_gt_flow.py",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["--eval_type", "seq", "--end_idx","8"]
+           // "args": ["--eval_type", "seq", "--end_idx","8"]
         }
     ]
 }
