@@ -11,6 +11,7 @@ RUN apt-get update && \
         apt-get install -y build-essential && \
         apt-get install -y wget unzip && \
         apt-get install -y git && \
+        apt-get install -y neovim && \
         apt-get clean && \
         rm -rf /var/lib/apt/lists/*
 
