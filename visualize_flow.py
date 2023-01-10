@@ -188,7 +188,7 @@ if __name__ == '__main__':
     parser.add_argument('--eval_type', default='sintel')
     parser.add_argument('--root_dir', default='.')
     parser.add_argument('--sintel_dir', default='datasets/Sintel/test/clean')
-    parser.add_argument('--seq_dir', default='demo_data/mihoyo')
+    parser.add_argument('--seq_dir', default='demo_data')
     parser.add_argument('--start_idx', type=int, default=1)     # starting index of the image sequence
     parser.add_argument('--end_idx', type=int, default=1200)    # ending index of the image sequence
     parser.add_argument('--viz_root_dir', default='viz_results')

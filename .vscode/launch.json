@@ -8,10 +8,10 @@
             "name": "Python: Aktuelle Datei",
             "type": "python",
             "request": "launch",
-            "program": "/home/alex/Development/master/FlowFormer-Official/evaluate_FlowFormer.py",
+            "program": "/home/alex/Development/master/FlowFormer-Official/visualize_flow.py",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["--dataset", "pet"]
+            "args": ["--eval_type", "seq", "--end_idx","8"]
         }
     ]
 }
