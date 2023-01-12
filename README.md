@@ -129,7 +129,8 @@ The default image sequence format is:
         ├── 001000.png
 ```
 
-
+### Visualize gt data
+`python visualize_gt_flow.py --gt_dir <path>`
 ## License
 FlowFormer is released under the Apache License
 
