@@ -9,10 +9,11 @@
             "name": "Python: Aktuelle Datei",
             "type": "python",
             "request": "launch",
-            "program": "/home/alex/Development/master/FlowFormer-Official/visualize_flow.py",
+            "program": "/home/alex/Development/master/FlowFormer-Official/train_FlowFormer.py",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["--eval_type", "seq", "--end_idx","8","--keep_size", "--seq_dir","/home/alex/Development/master/FlowFormer-Official/demo_data/"]
+            //"args": ["--eval_type", "seq", "--end_idx","8","--keep_size", "--seq_dir","/home/alex/Development/master/FlowFormer-Official/demo_data/"]
+            "args": ["--name", "pet", "--stage", "pet", "--validation", "pet"]
         }
     ]
 }

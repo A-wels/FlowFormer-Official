@@ -87,13 +87,13 @@ def train(cfg):
                 image2 = (image2 + stdv * torch.randn(*image2.shape).cuda()).clamp(0.0, 255.0)
 
             output = {}
-            if args.stage=='pet:':
-                padder = InputPadder(image1.shape)
+            padder = InputPadder(image1.shape)
+
+            if args.stage == 'pet':
                 image1, image2 = padder.pad(image1, image2)
 
             flow_predictions = model(image1, image2, output)
             if args.stage == 'pet':
-                padder = InputPadder(image1.shape)
                 flow_predictions = padder.unpad(flow_predictions[0])
             loss, metrics = sequence_loss(flow_predictions, flow, valid, cfg)
             scaler.scale(loss).backward()
