@@ -10,7 +10,8 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
-from configs.submission import get_cfg
+#from configs.submission import get_cfg
+from configs.pet_eval import get_cfg
 from core.utils.misc import process_cfg
 import datasets
 from utils import flow_viz
@@ -23,6 +24,7 @@ from core.FlowFormer import build_flowformer
 
 from utils.utils import InputPadder, forward_interpolate
 import itertools
+from visualize_gt_flow import create_gif, generate_vector_visualization
 
 TRAIN_SIZE = [432, 960]
 
@@ -153,14 +155,19 @@ def build_model():
 
 def visualize_flow(root_dir, viz_root_dir, model, img_pairs, keep_size):
     weights = None
+    list_of_images = []
     for img_pair in img_pairs:
         fn1, fn2 = img_pair
         print(f"processing {fn1}, {fn2}...")
+        output_path = os.path.join(viz_root_dir,fn2.split("/")[-1])
 
         image1, image2, viz_fn = prepare_image(root_dir, viz_root_dir, fn1, fn2, keep_size)
         flow = compute_flow(model, image1, image2, weights)
         flow_img = flow_viz.flow_to_image(flow)
-        cv2.imwrite(viz_fn, flow_img[:, :, [2,1,0]])
+        cv2.imwrite(output_path, flow_img[:, :, [2,1,0]])
+        generate_vector_visualization(flow, flow_img, fn2, output_path)
+        list_of_images.append(output_path)
+    create_gif(list_of_images, viz_root_dir,fn2.split("/")[-2])
 
 def process_sintel(sintel_dir):
     img_pairs = []
@@ -182,6 +189,8 @@ def generate_pairs(dirname, start_idx, end_idx):
         img_pairs.append((img1, img2))
 
     return img_pairs
+
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

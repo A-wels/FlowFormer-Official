@@ -35,6 +35,35 @@ def get_image(path):
         flow_img = np.transpose(flow_img, (1,0,2))
         return flow, flow_img
 
+def generate_vector_visualization(flow, flow_img,title,output_path, step=10):
+    copy_image = flow_img.copy()
+    ims=dict(cmap='Greys', vmax=0.4*copy_image.max(),vmin=0)
+    fig, axs = plt.subplots(1, 1, constrained_layout=True, figsize=(20, 20))
+
+    axs.imshow(copy_image, **ims)
+    axs.set_title('MVF {} with vectors'.format(title))
+    axs.set_xlabel("front-back")
+    axs.set_ylabel("head-feet")
+
+    step = 10
+    quiver_opts=dict(color='red', angles='xy',scale_units='xy', scale=1)
+    x,y =np.meshgrid(np.arange(0,flow_img.shape[1],step), np.arange(0,flow_img.shape[0],step))
+    part1 = flow[::step,::step,0]
+    part2 = flow[::step,::step,1]
+    axs.quiver(x,y,part1,part2, **quiver_opts)
+    plt.savefig(output_path)
+
+def create_gif(list_of_png,viz_root_dir,title):
+    # create animated gif out of pngs
+    images = []
+    
+    for filename in tqdm(list_of_png, desc="Creating gif"):
+        images.append(imageio.v2.imread(filename))
+    imageio.mimsave(os.path.join(viz_root_dir,'{}.gif'.format(title)), images, duration=0.1)
+    print("Saving: ")
+    print("{}".format(os.path.join(viz_root_dir,'{}.gif'.format(title)), images, duration=0.1))
+    print("Created gif")
+
 def visualize_flow(viz_root_dir,gt_dir):
     if not os.path.exists(viz_root_dir):
         os.makedirs(viz_root_dir)
@@ -46,37 +75,12 @@ def visualize_flow(viz_root_dir,gt_dir):
         flow, flow_img = get_image(os.path.join(gt_dir,flowfile))
         output_path = os.path.join(viz_root_dir,flowfile.replace(".mvf", ".png"))
 
-        copy_image = flow_img.copy()
-        ims=dict(cmap='Greys', vmax=0.4*copy_image.max(),vmin=0)
-        fig, axs = plt.subplots(1, 1, constrained_layout=True, figsize=(20, 20))
 
-        axs.imshow(copy_image, **ims)
-        axs.set_title('MVF {} with vectors'.format(flowfile))
-        axs.set_xlabel("front-back")
-        axs.set_ylabel("head-feet")
-
-        step = 10
-        quiver_opts=dict(color='red', angles='xy',scale_units='xy',scale=1)
-        x,y =np.meshgrid(np.arange(0,flow_img.shape[1],step), np.arange(0,flow_img.shape[0],step))
-        part1 = flow[::step,::step,0]
-        part2 = flow[::step,::step,1]
-        axs.quiver(x,y,part1,part2,**quiver_opts)
-        
-
-
-      #  plt.show()
-        plt.savefig(output_path)
+        generate_vector_visualization(flow, flow_img,flowfile, output_path)
         list_of_png.append(output_path)
+    create_gif(list_of_png,viz_root_dir, gt_dir.split("/")[-1])
 
-    # create animated gif out of pngs
-    images = []
     
-    for filename in tqdm(list_of_png, desc="Creating gif"):
-        images.append(imageio.v2.imread(filename))
-    imageio.mimsave(os.path.join(viz_root_dir,'{}.gif'.format(gt_dir.split("/")[-1])), images, duration=0.1)
-    print("Saving: ")
-    print("{}".format(os.path.join(viz_root_dir,'{}.gif'.format(gt_dir.split("/")[-1])), images, duration=0.1))
-    print("Created gif")
     
 
 
