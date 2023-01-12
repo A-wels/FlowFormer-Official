@@ -93,6 +93,7 @@ def train(cfg):
 
             flow_predictions = model(image1, image2, output)
             if args.stage == 'pet':
+                padder = InputPadder(image1.shape)
                 flow_predictions = padder.unpad(flow_predictions[0])
             loss, metrics = sequence_loss(flow_predictions, flow, valid, cfg)
             scaler.scale(loss).backward()
