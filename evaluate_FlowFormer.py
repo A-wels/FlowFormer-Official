@@ -1,4 +1,6 @@
 import sys
+
+from tqdm import tqdm
 sys.path.append('core')
 
 from PIL import Image
@@ -50,7 +52,7 @@ def validate_pet(model):
     epe_list = []
 
     val_dataset = datasets.PET(split='validation')
-    for val_id in range(len(val_dataset)):
+    for val_id in tqdm(range(len(val_dataset)), desc="Evaluating..."):
         image1, image2, flow_gt, _ = val_dataset[val_id]
         image1 = image1[None].cuda()
         image2 = image2[None].cuda()
@@ -58,11 +60,16 @@ def validate_pet(model):
         image1, image2 = padder.pad(image1, image2)
 
         flow_pre, _ = model(image1, image2)
-        flow_pre = padder.unpad(flow_pre[0]).cpu()[0]
 
+        flow_pre = padder.unpad(flow_pre[0]).cpu()[0]
         epe = torch.sum((flow_pre[0].cpu() - flow_gt)**2, dim=0).sqrt()
         epe_list.append(epe.view(-1).numpy())
+    epe = np.mean(epe_list)
+    px1 = np.mean(np.concatenate(epe_list)<1)
+    px3 = np.mean(np.concatenate(epe_list)<3)
+    px5 = np.mean(np.concatenate(epe_list)<5)
 
+    print("Validation (PET) EPE: %f, 1px: %f, 3px: %f, 5px: %f" % ( epe, px1, px3, px5))
     epe = np.mean(np.concatenate(epe_list))
     print("Validation PET EPE: %f" % epe)
     return {'pet': epe}

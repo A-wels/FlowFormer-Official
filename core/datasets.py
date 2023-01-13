@@ -72,7 +72,7 @@ class FlowDataset(data.Dataset):
             img1 = img1[..., :3]
             img2 = img2[..., :3]
 
-        if self.augmentor is not None:
+        if self.augmentor is not None and False:
             if self.sparse:
                 img1, img2, flow, valid = self.augmentor(
                     img1, img2, flow, valid)
@@ -262,7 +262,7 @@ def fetch_dataloader(args, TRAIN_DS='C+T+K+S+H'):
     
     elif args.stage == 'pet':
         aug_params = {'crop_size': args.image_size,
-                      'min_scale': -0.2, 'max_scale': 0.4, 'do_flip': False}
+                      'min_scale': -0.1, 'max_scale': 0.1, 'do_flip': False}
         train_dataset = PET(aug_params, split='training')
 
     train_loader = data.DataLoader(train_dataset, batch_size=args.batch_size,
