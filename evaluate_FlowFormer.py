@@ -11,9 +11,10 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
-from configs.default import get_cfg
-from configs.things_eval import get_cfg as get_things_cfg
-from configs.small_things_eval import get_cfg as get_small_things_cfg
+#from configs.default import get_cfg
+#from configs.things_eval import get_cfg as get_things_cfg
+#from configs.small_things_eval import get_cfg as get_small_things_cfg
+from configs.pet_eval import get_cfg as get_things_cfg
 from core.utils.misc import process_cfg
 import datasets
 from utils import flow_viz
@@ -195,7 +196,7 @@ if __name__ == '__main__':
         cfg = get_things_cfg()
 
     # TODO CHECKOUT UPDATE
-    #cfg.update(vars(args))
+   # cfg.update(vars(args))
 
     model = torch.nn.DataParallel(build_flowformer(cfg))
 
