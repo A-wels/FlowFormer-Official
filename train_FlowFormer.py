@@ -24,7 +24,7 @@ from core.loss import sequence_loss
 from core.optimizer import fetch_optimizer
 from core.utils.misc import process_cfg
 from loguru import logger as loguru_logger
-
+from utils.utils import InputPadder
 # from torch.utils.tensorboard import SummaryWriter
 from core.utils.logger import Logger
 
@@ -86,8 +86,14 @@ def train(cfg):
                 image2 = (image2 + stdv * torch.randn(*image2.shape).cuda()).clamp(0.0, 255.0)
 
             output = {}
+            padder = InputPadder(image1.shape)
         
+            if args.stage == 'pet':
+                image1, image2 = padder.pad(image1, image2)
+
             flow_predictions = model(image1, image2, output)
+            if args.stage == 'pet':
+                flow_predictions = padder.unpad(flow_predictions[0])
         
             loss, metrics = sequence_loss(flow_predictions, flow, valid, cfg)
             scaler.scale(loss).backward()
