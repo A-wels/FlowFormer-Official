@@ -17,7 +17,7 @@ from configs.submission import get_cfg
 from core.utils.misc import process_cfg
 import datasets
 from utils import flow_viz
-from utils.frame_utils import read_gen
+from utils.frame_utils import get_image_from_mvf
 import cv2
 import math
 import os.path as osp
@@ -28,12 +28,7 @@ from utils.utils import InputPadder, forward_interpolate
 import itertools
 
 IMAGE_SIZE = [344,127]
-def get_image(path):
-        flow = read_gen(path)
-        flow_img = flow_viz.flow_to_image(flow)     
-        flow = np.transpose(flow, (1,0,2))
-        flow_img = np.transpose(flow_img, (1,0,2))
-        return flow, flow_img
+
 
 def generate_vector_visualization(flow, flow_img,title,output_path, step=10):
     copy_image = flow_img.copy()
@@ -72,7 +67,7 @@ def visualize_flow(viz_root_dir,gt_dir):
     list_of_png = []
 
     for flowfile in tqdm(list_of_files, desc="Visualizing flow"):
-        flow, flow_img = get_image(os.path.join(gt_dir,flowfile))
+        flow, flow_img = get_image_from_mvf(os.path.join(gt_dir,flowfile))
         output_path = os.path.join(viz_root_dir,flowfile.replace(".mvf", ".png"))
 
 

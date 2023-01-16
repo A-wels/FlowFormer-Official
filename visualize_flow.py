@@ -1,5 +1,8 @@
 import sys
+from typing import List
 sys.path.append('core')
+
+from tqdm import tqdm
 
 from PIL import Image
 from glob import glob
@@ -10,8 +13,8 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
-#from configs.submission import get_cfg
-from configs.pet_eval import get_cfg
+from configs.submission import get_cfg
+#from configs.pet_eval import get_cfg
 from core.utils.misc import process_cfg
 import datasets
 from utils import flow_viz
@@ -115,13 +118,41 @@ def compute_adaptive_image_size(image_size):
 
     return image_size
 
+def prepare_raw_image(root_dir, viz_root_dir, fn1, fn2):
+    print(f"preparing raw image...")
+    print(f"root dir = {root_dir}, fn = {fn1}")
+
+    image1 = frame_utils.read_gen(osp.join(root_dir, fn1))
+    image2 = frame_utils.read_gen(osp.join(root_dir, fn2))
+    image1 = np.stack((image1,)*3, axis=-1) # convert to 3 channels
+    image2 = np.stack((image2,)*3, axis=-1) # convert to 3 channels
+
+  #  image1 = np.array(image1).astype(np.float32)[..., :3]
+  #  image2 = np.array(image2).astype(np.float32)[..., :3]
+   
+    image1 = torch.from_numpy(image1).permute(2, 0, 1).float()
+    image2 = torch.from_numpy(image2).permute(2, 0, 1).float()
+
+
+    dirname = osp.dirname(fn1)
+    filename = osp.splitext(osp.basename(fn1))[0]
+
+    viz_dir = osp.join(viz_root_dir, dirname)
+    if not osp.exists(viz_dir):
+        os.makedirs(viz_dir)
+
+    viz_fn = osp.join(viz_dir, filename + '.png')
+
+    return image1, image2, viz_fn
+
 def prepare_image(root_dir, viz_root_dir, fn1, fn2, keep_size):
     print(f"preparing image...")
     print(f"root dir = {root_dir}, fn = {fn1}")
 
     image1 = frame_utils.read_gen(osp.join(root_dir, fn1))
     image2 = frame_utils.read_gen(osp.join(root_dir, fn2))
-    image1 = np.array(image1).astype(np.uint8)[..., :3]
+    image1 = np.array(image1).astype(np.uint8)
+    image1 = image1[..., :3]
     image2 = np.array(image2).astype(np.uint8)[..., :3]
     if not keep_size:
         dsize = compute_adaptive_image_size(image1.shape[0:2])
@@ -159,9 +190,16 @@ def visualize_flow(root_dir, viz_root_dir, model, img_pairs, keep_size):
     for img_pair in img_pairs:
         fn1, fn2 = img_pair
         print(f"processing {fn1}, {fn2}...")
-        output_path = os.path.join(viz_root_dir,fn2.split("/")[-1])
+        output_path = os.path.join(viz_root_dir,fn2.split("/")[-1].replace(".v",".png"))
+        if fn1.endswith("png"):
+            image1, image2, viz_fn = prepare_image(root_dir, viz_root_dir, fn1, fn2, keep_size)
+        elif fn1.endswith(".v"):
+            image1, image2, viz_fn = prepare_raw_image(root_dir, viz_root_dir, fn1, fn2)
+            # show Pillow image image1
 
-        image1, image2, viz_fn = prepare_image(root_dir, viz_root_dir, fn1, fn2, keep_size)
+
+        else:
+            raise NotImplementedError(f"unknown file type: {fn1}")
         flow = compute_flow(model, image1, image2, weights)
         flow_img = flow_viz.flow_to_image(flow)
         cv2.imwrite(output_path, flow_img[:, :, [2,1,0]])
@@ -190,6 +228,19 @@ def generate_pairs(dirname, start_idx, end_idx):
 
     return img_pairs
 
+def generate_raw_pairs(dirname) -> List:
+    img_pairs = []
+    files = sorted(os.listdir(dirname))
+    files = [f for f in files if f.endswith('.v')]
+    for id in tqdm(range(len(files)), desc="Generating pairs"):
+        if id < len(files)-1:
+            img1 = osp.join(dirname, files[id])
+            img2 = osp.join(dirname, files[id+1])
+            img_pairs.append((img1, img2))
+    return img_pairs
+        
+
+
 
 
 if __name__ == '__main__':
@@ -210,9 +261,13 @@ if __name__ == '__main__':
 
     model = build_model()
 
+    img_pairs: List = []
     if args.eval_type == 'sintel':
         img_pairs = process_sintel(args.sintel_dir)
     elif args.eval_type == 'seq':
         img_pairs = generate_pairs(args.seq_dir, args.start_idx, args.end_idx)
+    elif args.eval_type == 'raw':
+        img_pairs = generate_raw_pairs(args.seq_dir)
     with torch.no_grad():
+        assert len(img_pairs) > 0, "No image pairs found in {}!".format(args.seq_dir)
         visualize_flow(root_dir, viz_root_dir, model, img_pairs, args.keep_size)

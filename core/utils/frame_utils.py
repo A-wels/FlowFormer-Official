@@ -4,11 +4,17 @@ from os.path import *
 import re
 import os
 import cv2
-
+from core.utils.flow_viz import flow_to_image
 cv2.setNumThreads(0)
 cv2.ocl.setUseOpenCL(False)
 
 TAG_CHAR = np.array([202021.25], np.float32)
+def get_image_from_mvf(path):
+        flow = read_gen(path)
+        flow_img = flow_to_image(flow)     
+        flow = np.transpose(flow, (1,0,2))
+        flow_img = np.transpose(flow_img, (1,0,2))
+        return flow, flow_img
 
 def readFlow(fn):
     """ Read .flo file in Middlebury format"""
@@ -144,7 +150,10 @@ def read_gen(file_name, pil=False):
             return flow[:, :, :-1]
     elif ext == '.v':
         # create image from generated data
-        return np.reshape(np.fromfile(file_name, 'float32'),[344,127])
+        data =  np.reshape(np.fromfile(file_name, 'float32'),[344,127], order='F')
+        data = ((data - data.min()) * (1/(data.max() - data.min()) * 255)).astype('uint8')
+        data = np.transpose(data, (1, 0))
+        return data
     elif ext == '.mvf':
         flo_name = file_name.replace('.mvf', '.flo')
         if os.path.exists(flo_name):
