@@ -24,7 +24,6 @@ from core.loss import sequence_loss
 from core.optimizer import fetch_optimizer
 from core.utils.misc import process_cfg
 from loguru import logger as loguru_logger
-from utils.utils import InputPadder, forward_interpolate
 
 # from torch.utils.tensorboard import SummaryWriter
 from core.utils.logger import Logger
@@ -75,26 +74,11 @@ def train(cfg):
     add_noise = False
 
     should_keep_training = True
-    while should_keep_training:
 
+    while should_keep_training:
         for i_batch, data_blob in enumerate(train_loader):
             optimizer.zero_grad()
             image1, image2, flow, valid = [x.cuda() for x in data_blob]
-           # show image1 and image2
-            image1 = image1.cpu().numpy()
-            image2 = image2.cpu().numpy()
-            np.savetxt('image1.txt', image1[1,0,:,:])
-            image1 = np.transpose(image1, (0, 2, 3, 1))
-          #  image2 = np.transpose(image2, (0, 2, 3, 1))
-            #image1 = image1[0]
-            image2 = image2[0]
-           # image1 = image1.astype(np.uint8)
-           # image2 = image2.astype(np.uint8)
-            plt.imshow(image1,)
-            plt.xticks([]), plt.yticks([])  # to hide tick values on X and Y axis
-            plt.show()
-
-
 
             if cfg.add_noise:
                 stdv = np.random.uniform(0.0, 5.0)
@@ -102,14 +86,9 @@ def train(cfg):
                 image2 = (image2 + stdv * torch.randn(*image2.shape).cuda()).clamp(0.0, 255.0)
 
             output = {}
-            padder = InputPadder(image1.shape)
-
-            if args.stage == 'pet':
-                image1, image2 = padder.pad(image1, image2)
-
+        
             flow_predictions = model(image1, image2, output)
-            if args.stage == 'pet':
-                flow_predictions = padder.unpad(flow_predictions[0])
+        
             loss, metrics = sequence_loss(flow_predictions, flow, valid, cfg)
             scaler.scale(loss).backward()
             scaler.unscale_(optimizer)

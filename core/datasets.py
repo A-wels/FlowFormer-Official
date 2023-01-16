@@ -72,7 +72,7 @@ class FlowDataset(data.Dataset):
             img1 = img1[..., :3]
             img2 = img2[..., :3]
 
-        if self.augmentor is not None:
+        if self.augmentor is not None and False:
             if self.sparse:
                 img1, img2, flow, valid = self.augmentor(
                     img1, img2, flow, valid)

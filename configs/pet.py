@@ -9,7 +9,7 @@ _CN.batch_size = 6
 _CN.sum_freq = 100
 _CN.val_freq = 5000000
 _CN.image_size = [344, 127]
-_CN.add_noise = True
+_CN.add_noise = False
 _CN.critical_params = []
 
 _CN.transformer = 'latentcostformer'

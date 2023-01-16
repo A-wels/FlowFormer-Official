@@ -157,7 +157,8 @@ def read_gen(file_name, pil=False):
     elif ext == '.mvf':
         flo_name = file_name.replace('.mvf', '.flo')
         if os.path.exists(flo_name):
-         return readFlow(flo_name).astype(np.float32)
+            flow = readFlow(flo_name).astype(np.float32)
+            return np.transpose(flow, (1,0, 2))
         else:
             return read_gen(convert_mvf_to_flo(file_name))
     return []
