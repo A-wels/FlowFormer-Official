@@ -26,7 +26,7 @@ from utils.utils import InputPadder, forward_interpolate
 import itertools
 from visualize_gt_flow import create_gif, generate_vector_visualization
 
-TRAIN_SIZE = [432, 960]
+TRAIN_SIZE = [344, 127]
 
 
 def compute_grid_indices(image_shape, patch_size=TRAIN_SIZE, min_overlap=20):

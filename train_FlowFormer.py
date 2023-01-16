@@ -80,6 +80,21 @@ def train(cfg):
         for i_batch, data_blob in enumerate(train_loader):
             optimizer.zero_grad()
             image1, image2, flow, valid = [x.cuda() for x in data_blob]
+           # show image1 and image2
+            image1 = image1.cpu().numpy()
+            image2 = image2.cpu().numpy()
+            np.savetxt('image1.txt', image1[1,0,:,:])
+            image1 = np.transpose(image1, (0, 2, 3, 1))
+          #  image2 = np.transpose(image2, (0, 2, 3, 1))
+            #image1 = image1[0]
+            image2 = image2[0]
+           # image1 = image1.astype(np.uint8)
+           # image2 = image2.astype(np.uint8)
+            plt.imshow(image1,)
+            plt.xticks([]), plt.yticks([])  # to hide tick values on X and Y axis
+            plt.show()
+
+
 
             if cfg.add_noise:
                 stdv = np.random.uniform(0.0, 5.0)

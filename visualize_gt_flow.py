@@ -59,7 +59,7 @@ def create_gif(list_of_png,viz_root_dir,title):
     
     for filename in tqdm(list_of_png, desc="Creating gif"):
         images.append(imageio.v2.imread(filename))
-    imageio.mimsave(os.path.join(viz_root_dir,'{}.gif'.format(title)), images, duration=0.1)
+    imageio.mimsave(os.path.join(viz_root_dir,'{}.gif'.format(title)), images, duration=0.5)
     print("Saving: ")
     print("{}".format(os.path.join(viz_root_dir,'{}.gif'.format(title)), images, duration=0.1))
     print("Created gif")
