@@ -78,15 +78,17 @@ def compute_flow(model, image1, image2, weights=None):
 
     image1, image2 = image1[None].cuda(), image2[None].cuda()
 
+
     hws = compute_grid_indices(image_size)
     if weights is None:     # no tile
         padder = InputPadder(image1.shape)
         image1, image2 = padder.pad(image1, image2)
+        
 
         flow_pre, _ = model(image1, image2)
 
         flow_pre = padder.unpad(flow_pre)
-        flow = flow_pre[0].permute(1, 2, 0).cpu().numpy()
+        flow = flow_pre[0].permute(2, 1, 0).cpu().numpy()
     else:                   # tile
         flows = 0
         flow_count = 0
@@ -100,7 +102,7 @@ def compute_flow(model, image1, image2, weights=None):
             flow_count += F.pad(weights[idx], padding)
 
         flow_pre = flows / flow_count
-        flow = flow_pre[0].permute(1, 2, 0).cpu().numpy()
+        flow = flow_pre[0].permute(2, 1, 0).cpu().numpy()
 
     return flow
 
