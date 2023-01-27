@@ -152,7 +152,7 @@ def read_gen(file_name, pil=False):
         # create image from generated data
         data =  np.reshape(np.fromfile(file_name, 'float32'),[344,127], order='F')
         data = ((data - data.min()) * (1/(data.max() - data.min()) * 255)).astype('uint8')
-        data = np.transpose(data, (1, 0))
+      #  data = np.transpose(data, (1, 0))
         return data
     elif ext == '.mvf':
         flo_name = file_name.replace('.mvf', '.flo')
