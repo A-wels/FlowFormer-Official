@@ -117,11 +117,7 @@ class FlowAugmentor:
         return img1, img2, flow
 
     def __call__(self, img1, img2, flow):
-        print("IN")
-        print(img1.shape)
-        print(img2.shape)
-        print(flow.shape)
-        print("")
+
         img1, img2 = self.color_transform(img1, img2)
         img1, img2 = self.eraser_transform(img1, img2)
         if self.pwc_aug:
@@ -146,11 +142,7 @@ class FlowAugmentor:
         img1 = np.ascontiguousarray(img1)
         img2 = np.ascontiguousarray(img2)
         flow = np.ascontiguousarray(flow)
-        print("OUT")
-        print(img1.shape)
-        print(img2.shape)
-        print(flow.shape)
-        print("")
+
         return img1, img2, flow
 
 class SparseFlowAugmentor:
