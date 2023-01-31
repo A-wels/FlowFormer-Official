@@ -52,6 +52,7 @@ def validate_pet(model):
     model.eval()
     epe_list = []
 
+
     val_dataset = datasets.PET(split='validation')
     for val_id in tqdm(range(len(val_dataset)), desc="Evaluating..."):
         image1, image2, flow_gt, _ = val_dataset[val_id]
@@ -73,7 +74,7 @@ def validate_pet(model):
     print("Validation (PET) EPE: %f, 1px: %f, 3px: %f, 5px: %f" % ( epe, px1, px3, px5))
     epe = np.mean(np.concatenate(epe_list))
     print("Validation PET EPE: %f" % epe)
-    return {'pet': epe}
+    return {'epe': epe, '1px':px1, '3px':px3, '5px':px5}
 
 
 @torch.no_grad()

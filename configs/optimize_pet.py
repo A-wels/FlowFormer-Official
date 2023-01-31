@@ -76,8 +76,8 @@ def update_cfg(cfg, settings: dict):
         cfg.latentcostformer.only_global = settings['only_global']
     if 'feat_cross_attn' in settings:
         cfg.latentcostformer.feat_cross_attn = settings['feat_cross_attn']
-    if 'use_mlp' in settings:
-        cfg.latentcostformer.use_mlp = settings['use_mlp']
+    if 'context_contact' in settings:
+        cfg.latentcostformer.context_contact = settings['context_contact']
     if 'vertical_conv' in settings:
         cfg.latentcostformer.vertical_conv = settings['vertical_conv']
 

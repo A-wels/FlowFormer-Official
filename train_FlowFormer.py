@@ -72,6 +72,7 @@ def train(cfg):
     scaler = GradScaler(enabled=cfg.mixed_precision)
     logger = Logger(model, scheduler, cfg)
 
+
     add_noise = False
 
     should_keep_training = True
@@ -136,8 +137,10 @@ def train(cfg):
             if total_steps > cfg.trainer.num_steps:
                 should_keep_training = False
                 break
-
-    logger.close()
+    try:
+        logger.close()
+    except AttributeError:
+        print("Writer gone D:")
     PATH = cfg.log_dir + '/final'
     torch.save(model.state_dict(), PATH)
 
@@ -168,7 +171,7 @@ def train_with_parameters(cfg):
 
     if not os.path.isdir('checkpoints'):
         os.mkdir('checkpoints')
-    os.environ["NCCL_DEBUG"] = "INFO"
+    #os.environ["NCCL_DEBUG"] = "INFO"
     train(cfg)
     
 
