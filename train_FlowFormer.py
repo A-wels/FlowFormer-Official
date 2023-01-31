@@ -54,6 +54,7 @@ def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 def train(cfg):
+
     model = nn.DataParallel(build_flowformer(cfg))
     loguru_logger.info("Parameter Count: %d" % count_parameters(model))
 
@@ -63,8 +64,8 @@ def train(cfg):
 
     model.cuda()
     model.train()
-
     train_loader = datasets.fetch_dataloader(cfg)
+
     optimizer, scheduler = fetch_optimizer(model, cfg.trainer)
 
     total_steps = 0
@@ -75,6 +76,7 @@ def train(cfg):
 
     should_keep_training = True
 
+           
     while should_keep_training:
         for i_batch, data_blob in enumerate(train_loader):
             optimizer.zero_grad()
@@ -125,6 +127,7 @@ def train(cfg):
                         results.update(evaluate.validate_pet(model.module))
 
                 logger.write_dict(results)
+
                 
                 model.train()
             
@@ -142,6 +145,33 @@ def train(cfg):
     torch.save(model.state_dict(), PATH)
 
     return PATH
+
+args = None
+def train_with_parameters(cfg):
+    global args
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--name', default='pet', help="name your experiment")
+    parser.add_argument('--stage', default='pet',help="determines which dataset to use for training") 
+    parser.add_argument('--validation',default='pet', type=str, nargs='+')
+
+    parser.add_argument('--mixed_precision', default=False, action='store_true', help='use mixed precision')
+
+    args = parser.parse_args()
+
+    cfg.update(vars(args))
+    process_cfg(cfg)
+    loguru_logger.add(str(Path(cfg.log_dir) / 'log.txt'), encoding="utf8")
+    loguru_logger.info(cfg)
+
+    torch.manual_seed(1234)
+    np.random.seed(1234)
+
+    if not os.path.isdir('checkpoints'):
+        os.mkdir('checkpoints')
+    os.environ["NCCL_DEBUG"] = "INFO"
+    train(cfg)
+    
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
