@@ -44,7 +44,7 @@ if __name__ == "__main__":
     
     #only_global = CategoricalHyperparameter("only_global", [True], default_value=True)
     #feat_cross_attn = CategoricalHyperparameter("feat_cross_attn", [True], default_value=True)
-    context_contact = CategoricalHyperparameter("context_contact", [False, True], default_value=False)
+    context_contact = CategoricalHyperparameter("context_contact", [False], default_value=False)
 
     num_steps = UniformIntegerHyperparameter("num_steps", 300, 1000, default_value=500, log=True)
     canonical_lr = UniformFloatHyperparameter("canonical_lr", 12.5e-7, 12.5e-3, default_value=12.5e-5, log=True)
@@ -58,7 +58,7 @@ if __name__ == "__main__":
     scenario = Scenario(
         {
             "run_obj": "quality",  # we optimize quality (alternatively runtime)
-            "runcount-limit": 200,  # max. number of function evaluations
+            "runcount-limit": 100,  # max. number of function evaluations
             "cs": cs,  # configuration space
             "deterministic": True,
         }

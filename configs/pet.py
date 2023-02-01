@@ -4,16 +4,16 @@ _CN = CN()
 _CN.name = 'default'
 _CN.suffix ='pet'
 _CN.gamma = 0.85
-_CN.max_flow = 400
+_CN.max_flow = 20
 _CN.batch_size = 6
 _CN.sum_freq = 100
 _CN.val_freq = 5000000
 _CN.image_size = [344, 127]
-_CN.add_noise = False
+_CN.add_noise = True 
 _CN.critical_params = []
 
 _CN.transformer = 'latentcostformer'
-_CN.restore_ckpt = 'checkpoints/kitti.pth'
+_CN.restore_ckpt ='checkpoints/kitti.pth'
 
 # latentcostformer
 _CN.latentcostformer = CN()

@@ -1,0 +1,1 @@
+{"cpu_time": 0.0, "wallclock_time": 0.016351699829101562, "evaluations": 0, "cost": 2147483648.0, "incumbent": ["adamw_decay='3.478123542240705e-07'", "canonical_lr='0.0001391722772920588'", "ckpt=''None''", "context_contact='True'", "epsilon='1.8002151031841966e-07'", "gamma='0.6517497532469487'", "max_flow='2984'", "num_steps='890'"], "origin": "Sobol"}

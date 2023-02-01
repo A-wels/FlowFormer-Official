@@ -1,0 +1,2 @@
+"CPU Time Used","Estimated Training Performance","Wallclock Time","Incumbent ID","Automatic Configurator (CPU) Time","Configuration..."
+0.000000, 2147483648.000000, 0.016352, 1, 0.016352, adamw_decay='3.478123542240705e-07',canonical_lr='0.0001391722772920588',ckpt=''None'',context_contact='True',epsilon='1.8002151031841966e-07',gamma='0.6517497532469487',max_flow='2984',num_steps='890'

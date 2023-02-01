@@ -1,0 +1,8 @@
+adamw_decay real [1e-07, 0.1] [1e-05]log
+canonical_lr real [1.25e-06, 0.0125] [0.000125]log
+ckpt categorical {None, checkpoints/sintel.pth, checkpoints/kitti.pth} [checkpoints/sintel.pth]
+context_contact categorical {False} [False]
+epsilon real [1e-15, 1e-05] [1e-08]log
+gamma real [0.0001, 5.0] [0.85]log
+max_flow integer [5, 10000] [400]log
+num_steps integer [300, 1000] [500]log
