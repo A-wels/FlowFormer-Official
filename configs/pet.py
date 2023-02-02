@@ -4,12 +4,12 @@ _CN = CN()
 _CN.name = 'default'
 _CN.suffix ='pet'
 _CN.gamma = 0.85
-_CN.max_flow = 1
-_CN.batch_size = 16
+_CN.max_flow = 4
+_CN.batch_size = 32
 _CN.sum_freq = 100
 _CN.val_freq = 5000000
 _CN.image_size = [344, 127]
-_CN.add_noise = True 
+_CN.add_noise = False 
 _CN.critical_params = []
 
 _CN.transformer = 'latentcostformer'
@@ -37,7 +37,7 @@ _CN.latentcostformer.no_pe = False
 _CN.latentcostformer.gma = "GMA"
 _CN.latentcostformer.kernel_size = 9
 _CN.latentcostformer.rm_res = True
-_CN.latentcostformer.vert_c_dim = 128
+_CN.latentcostformer.vert_c_dim = 64
 _CN.latentcostformer.cost_encoder_res = True
 _CN.latentcostformer.cnet = 'twins'
 _CN.latentcostformer.fnet = 'twins'
@@ -48,7 +48,7 @@ _CN.latentcostformer.use_mlp = False
 _CN.latentcostformer.vertical_conv = False
 
 # decoder
-_CN.latentcostformer.decoder_depth = 12
+_CN.latentcostformer.decoder_depth = 32
 _CN.latentcostformer.critical_params = ['cost_heads_num', 'vert_c_dim', 'cnet', 'pretrain' , 'add_flow_token', 'encoder_depth', 'gma', 'cost_encoder_res']
 
 ### TRAINER
@@ -58,7 +58,7 @@ _CN.trainer.optimizer = 'adamw'
 _CN.trainer.canonical_lr = 12.5e-5
 _CN.trainer.adamw_decay = 1e-5
 _CN.trainer.clip = 1.0
-_CN.trainer.num_steps = 5000
+_CN.trainer.num_steps = 2500
 _CN.trainer.epsilon = 1e-8
 _CN.trainer.anneal_strategy = 'linear'
 def get_cfg():
