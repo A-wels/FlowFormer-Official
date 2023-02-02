@@ -22,7 +22,8 @@ RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86
         conda install -c anaconda -y python=3.7.15 &&\
         conda install -y pytorch=1.7.1 torchvision=0.8.2 cudatoolkit=11.0 matplotlib tensorboard scipy opencv -c pytorch  && \
 		conda install PyYaml && \
-        pip install yacs loguru einops timm==0.4.12 imageio
+		conda install gxx_linux-64 gcc_linux-64 swig && \
+        pip install yacs loguru einops timm==0.4.12 imageio smac
 
 RUN     cd ~ &&\
         git clone https://github.com/A-Wels/FlowFormer-Official && \

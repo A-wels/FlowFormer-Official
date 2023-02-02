@@ -1,1 +1,1 @@
-CUDA_VISIBLE_DEVICES="1,2" python -u train_FlowFormer.py --name pet --stage pet --validation pet
+CUDA_VISIBLE_DEVICES="0,1" python -u train_FlowFormer.py --name pet --stage pet --validation pet

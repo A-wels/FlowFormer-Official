@@ -5,7 +5,7 @@ _CN.name = 'default'
 _CN.suffix ='pet'
 _CN.gamma = 0.85
 _CN.max_flow = 1
-_CN.batch_size = 6
+_CN.batch_size = 16
 _CN.sum_freq = 100
 _CN.val_freq = 5000000
 _CN.image_size = [344, 127]
@@ -58,7 +58,7 @@ _CN.trainer.optimizer = 'adamw'
 _CN.trainer.canonical_lr = 12.5e-5
 _CN.trainer.adamw_decay = 1e-5
 _CN.trainer.clip = 1.0
-_CN.trainer.num_steps = 10000
+_CN.trainer.num_steps = 1200
 _CN.trainer.epsilon = 1e-8
 _CN.trainer.anneal_strategy = 'linear'
 def get_cfg():
