@@ -37,12 +37,39 @@ def readFlow(fn):
             # The reshape here is for visualization, the original code is (w,h,2)
             return np.resize(data, (int(h), int(w), 2))
 
+def readFlow3d(fn):
+    """ Read .flo file in Middlebury format"""
+    # Code adapted from:
+    # http://stackoverflow.com/questions/28013200/reading-middlebury-flow-files-with-python-bytes-array-numpy
+
+    # WARNING: this will work on little-endian architectures (eg Intel x86) only!
+    # print 'fn = %s'%(fn)
+    with open(fn, 'rb') as f:
+        magic = np.fromfile(f, np.float32, count=1)
+        if 202021.25 != magic:
+            print('Magic number incorrect. Invalid .flo file')
+            return None
+        else:
+            w = np.fromfile(f, np.int32, count=1)
+            h = np.fromfile(f, np.int32, count=1)
+            # print 'Reading %d x %d flo file\n' % (w, h)
+            data = np.fromfile(f, np.float32, count=2*int(w)*int(h))
+            # Reshape data into 3D array (columns, rows, bands)
+            # The reshape here is for visualization, the original code is (w,h,2)
+            return np.resize(data, (int(h), int(w), 2))
+
+
 def convert_mvf_to_flo(mvf_file) -> str:
     mvf = np.fromfile(mvf_file, dtype=np.float32)
     mvf = np.reshape(mvf, [*[344,127],2], order='F')
     flo_name = mvf_file.replace('.mvf', '.flo')
     writeFlow(flo_name, mvf)
     return flo_name
+
+def convert_3dmvf_to_flo(mvf_file):
+    mvf = np.fromfile(mvf_file, dtype=np.float32)
+    mvf = np.reshape(mvf, [*[344,344,127],3], order='F')
+    return mvf
 
 def readPFM(file):
     file = open(file, 'rb')
@@ -134,7 +161,7 @@ def writeFlowKITTI(filename, uv):
     cv2.imwrite(filename, uv[..., ::-1])
     
 
-def read_gen(file_name, pil=False):
+def read_gen(file_name, pil=False, is_3d=True):
     ext = splitext(file_name)[-1]
     if ext == '.png' or ext == '.jpeg' or ext == '.ppm' or ext == '.jpg':
         return Image.open(file_name)
@@ -149,17 +176,27 @@ def read_gen(file_name, pil=False):
         else:
             return flow[:, :, :-1]
     elif ext == '.v':
-        # create image from generated data
-        data =  np.reshape(np.fromfile(file_name, 'float32'),[344,127], order='F')
-        data = ((data - data.min()) * (1/(data.max() - data.min()) * 255)).astype('uint8')
-      #  data = np.transpose(data, (1, 0))
-        return data
-    elif ext == '.mvf':
-        flo_name = file_name.replace('.mvf', '.flo')
-        if os.path.exists(flo_name):
-            flow = readFlow(flo_name).astype(np.float32)
-            return flow
-           # return np.transpose(flow, (1,0, 2))
+        if is_3d:
+            # create image from generated data
+            data =  np.reshape(np.fromfile(file_name, 'float32'),[344,344,127], order='F')
+            data = ((data - data.min()) * (1/(data.max() - data.min()) * 255)).astype('uint8')
+        #  data = np.transpose(data, (1, 0))
+            return data
         else:
-            return read_gen(convert_mvf_to_flo(file_name))
+            # create image from generated data
+            data =  np.reshape(np.fromfile(file_name, 'float32'),[344,127], order='F')
+            data = ((data - data.min()) * (1/(data.max() - data.min()) * 255)).astype('uint8')
+        #  data = np.transpose(data, (1, 0))
+            return data
+    elif ext == '.mvf':
+        if is_3d:
+           return convert_3dmvf_to_flo(file_name)
+        else:
+            flo_name = file_name.replace('.mvf', '.flo')
+            if os.path.exists(flo_name):
+                flow = readFlow(flo_name).astype(np.float32)
+                return flow
+            # return np.transpose(flow, (1,0, 2))
+            else:
+                 return read_gen(convert_mvf_to_flo(file_name), is_3d)
     return []

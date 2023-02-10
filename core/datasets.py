@@ -68,9 +68,10 @@ class FlowDataset(data.Dataset):
         if len(img1.shape) == 2:
             img1 = np.tile(img1[..., None], (1, 1, 3))
             img2 = np.tile(img2[..., None], (1, 1, 3))
-        else:
-            img1 = img1[..., :3]
-            img2 = img2[..., :3]
+      # commented: dont cut of 3. dimension
+      #  else:
+      #      img1 = img1[..., :3]
+      #      img2 = img2[..., :3]
 
         if self.augmentor:
             if self.sparse:
@@ -78,9 +79,12 @@ class FlowDataset(data.Dataset):
                     img1, img2, flow, valid)
             else:
                 img1, img2, flow = self.augmentor(img1, img2, flow)
+        
         img1 = torch.from_numpy(img1).permute(2, 0, 1).float()
         img2 = torch.from_numpy(img2).permute(2, 0, 1).float()
-        flow = torch.from_numpy(flow).permute(2, 0, 1).float()
+        flow = torch.from_numpy(flow).permute(2, 0, 1, 3).float() # added 3. dimension
+        
+        #flow = torch.from_numpy(flow).permute(2, 0, 1).float()
 
         if valid is not None:
             valid = torch.from_numpy(valid)
@@ -152,6 +156,26 @@ class PET(FlowDataset):
             if split != 'test':
                 self.flow_list += sorted(glob(osp.join(flow_root,
                                          scene, '*.mvf')))
+
+class PET3D(FlowDataset):
+     def __init__(self, aug_params=None, split='training', root='datasets/pet', dstype='clean'):
+        super(PET3D, self).__init__(aug_params)
+        flow_root = osp.join(root, split, 'flow')
+        image_root = osp.join(root, split, dstype)
+
+        if split == 'test':
+            self.is_test = True
+
+        for scene in os.listdir(image_root):
+            image_list = sorted(glob(osp.join(image_root, scene, '*.v')))
+            for i in range(len(image_list)-1):
+                self.image_list += [[image_list[i], image_list[i+1]]]
+                self.extra_info += [(scene, i)]  # scene and frame_id
+
+            if split != 'test':
+                self.flow_list += sorted(glob(osp.join(flow_root,
+                                         scene, '*.mvf')))          
+                                                               
 
 
 class FlyingThings3D(FlowDataset):
@@ -264,9 +288,12 @@ def fetch_dataloader(args, TRAIN_DS='C+T+K+S+H'):
         aug_params = {'crop_size': args.image_size,
                       'min_scale': -0.1, 'max_scale': 0.1, 'do_flip': False}
         train_dataset = PET(aug_params, split='training')
+    elif args.stage == 'pet3d':
+        aug_params = None
+        train_dataset = PET3D(aug_params, split='training')
 
     train_loader = data.DataLoader(train_dataset, batch_size=args.batch_size,
-                                   pin_memory=False, shuffle=True, num_workers=2, drop_last=True)
+                                   pin_memory=False, shuffle=True, num_workers=0, drop_last=True) # num_workers maybe higher 0
 
     print('Training with %d image pairs' % len(train_dataset))
     return train_loader

@@ -315,10 +315,10 @@ class MemoryEncoder(nn.Module):
         if cfg.fnet == 'twins':
             self.feat_encoder = twins_svt_large(pretrained=self.cfg.pretrain)
         elif cfg.fnet == 'basicencoder':
-            self.feat_encoder = BasicEncoder(output_dim=256, norm_fn='instance')
+            self.feat_encoder = BasicEncoder(output_dim=256, norm_fn='instance',  input_dim=4)
         else:
             exit()
-        self.channel_convertor = nn.Conv2d(cfg.encoder_latent_dim, cfg.encoder_latent_dim, 1, padding=0, bias=False)
+        self.channel_convertor = nn.Conv3d(cfg.encoder_latent_dim, cfg.encoder_latent_dim, 1, padding=0, bias=False)
         self.cost_perceiver_encoder = CostPerceiverEncoder(cfg)
 
     def corr(self, fmap1, fmap2):

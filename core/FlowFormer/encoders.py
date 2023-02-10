@@ -2,12 +2,11 @@ import torch
 import torch.nn as nn
 import timm
 import numpy as np
-
+# CHANGE TO DIFFERENT ENCODER?
 class twins_svt_large(nn.Module):
     def __init__(self, pretrained=True):
         super().__init__()
         self.svt = timm.create_model('twins_svt_large', pretrained=pretrained)
-
         del self.svt.head
         del self.svt.patch_embeds[2]
         del self.svt.patch_embeds[2]
