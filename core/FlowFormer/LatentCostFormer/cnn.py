@@ -186,37 +186,12 @@ class BasicEncoder(nn.Module):
         if is_list:
             batch_dim = x[0].shape[0]
             x = torch.cat(x, dim=0)
-        print("INPUT")
-        print(x.shape)
         x = self.conv1(x)
-        print("After conv1")
-        print(x.shape)
-
         x = self.norm1(x)
-        print("After norm1")
-        print(x.shape)
-
         x = self.relu1(x)
-
-        print("After relu")
-        print(x.shape)
-
-        print("layer 1")
-
         x = self.layer1(x)
-        print("After layer 1")
-        print(x.shape)
-
-        print("layer 2")
-
         x = self.layer2(x)
-        print("layer 3")
-        print(x.shape)
-
         x = self.layer3(x)
-        print("conv2")
-        print(x.shape)
-
         x = self.conv2(x)
 
         if self.training and self.dropout is not None:
@@ -224,7 +199,6 @@ class BasicEncoder(nn.Module):
 
         if is_list:
             x = torch.split(x, [batch_dim, batch_dim], dim=0)
-        print("return")
         return x
 
 

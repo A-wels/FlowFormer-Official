@@ -69,6 +69,7 @@ def convert_mvf_to_flo(mvf_file) -> str:
 def convert_3dmvf_to_flo(mvf_file):
     mvf = np.fromfile(mvf_file, dtype=np.float32)
     mvf = np.reshape(mvf, [*[344,344,127],3], order='F')
+    mvf = mvf[::2, ::2, :]
     return mvf
 
 def readPFM(file):
@@ -180,6 +181,7 @@ def read_gen(file_name, pil=False, is_3d=True):
             # create image from generated data
             data =  np.reshape(np.fromfile(file_name, 'float32'),[344,344,127], order='F')
             data = ((data - data.min()) * (1/(data.max() - data.min()) * 255)).astype('uint8')
+            data = data[::2, ::2, :]
         #  data = np.transpose(data, (1, 0))
             return data
         else:

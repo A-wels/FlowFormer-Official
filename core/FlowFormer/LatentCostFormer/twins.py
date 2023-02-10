@@ -240,7 +240,8 @@ class LocallyGroupedAttnRPEContext(nn.Module):
         self.scale = head_dim ** -0.5
         self.vert_c_dim = vert_c_dim
 
-        self.context_proj = nn.Linear(256, vert_c_dim)
+        self.context_proj = nn.Linear(16, 6569856)
+        #self.context_proj = nn.Linear(256, vert_c_dim)
         # context are not added to value
         self.q = nn.Linear(dim+vert_c_dim, dim, bias=True)
         self.k = nn.Linear(dim+vert_c_dim, dim, bias=True)
@@ -257,10 +258,15 @@ class LocallyGroupedAttnRPEContext(nn.Module):
         B, N, C = x.shape
         H, W = size
         C_qk = C+self.vert_c_dim
-
+        print(context.shape)
+        print(x.shape)
+        print(".......")
         context = context.repeat(B//context.shape[0], 1, 1, 1)
         context = context.view(B, -1, H*W).permute(0, 2, 1)
+        print(context.shape)
+        print("-----")
         context = self.context_proj(context)
+        print("DONE=!")
         context = context.view(B, H, W, -1)
 
         x = x.view(B, H, W, C)
@@ -777,13 +783,17 @@ class Block(nn.Module):
                     self.attn = LocallyGroupedAttnRPE(dim, num_heads, attn_drop, drop, ws)
             else:
                 self.attn = LocallyGroupedAttn(dim, num_heads, attn_drop, drop, ws)
+
         self.drop_path = DropPath(drop_path) if drop_path > 0. else nn.Identity()
         self.norm2 = norm_layer(dim)
         mlp_hidden_dim = int(dim * mlp_ratio)
         self.mlp = Mlp(in_features=dim, hidden_features=mlp_hidden_dim, act_layer=act_layer, drop=drop)
 
     def forward(self, x, size: Size_, context=None):
-        x = x + self.drop_path(self.attn(self.norm1(x), size, context))
+        dp = self.drop_path(self.attn(self.norm1(x), size, context))
+        print(dp.shape)
+        print(x.shape)
+        x = x + dp
         x = x + self.drop_path(self.mlp(self.norm2(x)))
         return x
 
