@@ -82,6 +82,7 @@ class FlowDataset(data.Dataset):
         
         img1 = torch.from_numpy(img1).permute(2, 0, 1).float()
         img2 = torch.from_numpy(img2).permute(2, 0, 1).float()
+
         flow = torch.from_numpy(flow).permute(2, 0, 1, 3).float() # added 3. dimension
         
         #flow = torch.from_numpy(flow).permute(2, 0, 1).float()
@@ -288,7 +289,7 @@ def fetch_dataloader(args, TRAIN_DS='C+T+K+S+H'):
         aug_params = {'crop_size': args.image_size,
                       'min_scale': -0.1, 'max_scale': 0.1, 'do_flip': False}
         train_dataset = PET(aug_params, split='training')
-    elif args.stage == 'pet3d':
+    else:# args.stage == 'pet3d':
         aug_params = None
         train_dataset = PET3D(aug_params, split='training')
 

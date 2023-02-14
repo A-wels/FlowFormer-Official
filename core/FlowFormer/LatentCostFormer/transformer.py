@@ -29,7 +29,9 @@ class FlowFormer(nn.Module):
            # self.context_encoder = BasicEncoder(output_dim=256, norm_fn='instance')
 
             # Adjust settings for basic encoder
-            self.context_encoder = BasicEncoder(output_dim=256, norm_fn='instance', input_dim=2)
+            #self.context_encoder = BasicEncoder(output_dim=256, norm_fn='instance', input_dim=2)
+            encoder_layer = nn.TransformerEncoderLayer(d_model=256, nhead=8)
+            self.context_encoder = torch.nn.TransformerEncoder(encoder_layer,6)
 
 
     def forward(self, image1, image2, output=None, flow_init=None):
@@ -43,6 +45,7 @@ class FlowFormer(nn.Module):
         if self.cfg.context_concat:
             context = self.context_encoder(torch.cat([image1, image2], dim=1))
         else:
+            print(image1.shape)
             context = self.context_encoder(image1)
         cost_memory = self.memory_encoder(image1, image2, data, context)
 
