@@ -12,6 +12,8 @@ RUN apt-get update && \
         apt-get install -y wget unzip && \
         apt-get install -y git && \
         apt-get install -y neovim && \
+	apt-get install -y libgl1-mesa-glx && \
+	apt-get install -y zsh
         apt-get clean && \
         rm -rf /var/lib/apt/lists/*
 
@@ -23,7 +25,9 @@ RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86
         conda install -y pytorch=1.7.1 torchvision=0.8.2 cudatoolkit=11.0 matplotlib tensorboard scipy opencv -c pytorch  && \
 		conda install PyYaml && \
 		conda install gxx_linux-64 gcc_linux-64 swig && \
-        pip install yacs loguru einops timm==0.4.12 imageio smac
+        pip install yacs loguru einops timm==0.4.12 imageio smac mayavi PyQt5
+RUN git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ~/powerlevel10k && \
+	echo 'source ~/powerlevel10k/powerlevel10k.zsh-theme' >>~/.zshrc
 
 RUN     cd ~ &&\
         git clone https://github.com/A-Wels/FlowFormer-Official && \
@@ -44,4 +48,5 @@ RUN     cd ~ &&\
         cd /root/.cache/torch/hub/checkpoints && \
         wget https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-vt3p-weights/twins_svt_large-90f6aaa9.pth && \
         apt-get purge -y build-essential
-ENTRYPOINT ["/bin/bash"]
+WORKDIR /root
+ENTRYPOINT ["/bin/zsh "]

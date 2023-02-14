@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 from pyTrans import OpticalFlow3D
 import os
+from mayavi import mlab
 
 from utils.frame_utils import read_gen
 
@@ -38,6 +39,24 @@ def load_demo_data(input_path):
     return vector_fields
 
 
+# generate images from predicitons using mlab
+def generate_images(prediction, target_dir):
+    mlab.options.offscreen = True
+    # make sure that the target directory exists
+    if not os.path.exists(target_dir):
+        os.makedirs(target_dir)
+
+    # generate images
+    for i in range(prediction.shape[0]):
+        x = prediction[i, 0, :, :]
+        y = prediction[i, 1, :, :]
+        z = prediction[i, 2, :, :]
+        # save as .png file
+        save_path = os.path.join(target_dir, 'prediction_{}.png'.format(i))
+        mlab.figure(size=(512, 512), bgcolor=(1, 1, 1))
+        mlab.quiver3d(x, y, z, scale_factor=0.5)
+        mlab.savefig(save_path)
+        mlab.close()
 
     
 
