@@ -4,7 +4,14 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
         {
             "name": "Python: Aktuelle Datei",
             "type": "python",
@@ -12,11 +19,17 @@
             "program": "/home/alex/Development/master/FlowFormer-Official/train_FlowFormer.py",
             "console": "integratedTerminal",
             "justMyCode": true,
-         //   "args": ["--eval_type", "seq", "--end_idx","8","--keep_size", "--seq_dir","/home/alex/Development/master/FlowFormer-Official/demo_data/"]
-            "args": ["--name", "pet", "--stage", "pet", "--validation", "pet"]
+            //   "args": ["--eval_type", "seq", "--end_idx","8","--keep_size", "--seq_dir","/home/alex/Development/master/FlowFormer-Official/demo_data/"]
+            "args": [
+                "--name",
+                "pet",
+                "--stage",
+                "pet",
+                "--validation",
+                "pet"
+            ]
             //"args": ["--dataset", "pet",]
-         //   "args" : ["--eval_type", "raw", "--keep_size"]
-        
+            //   "args" : ["--eval_type", "raw", "--keep_size"]
         }
     ]
 }

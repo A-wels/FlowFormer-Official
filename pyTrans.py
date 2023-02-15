@@ -14,7 +14,7 @@ from glob import glob
 import os.path as osp
 from utils.frame_utils import read_gen
      
-batch_size = 32
+batch_size = 5
 import torch.nn as nn
 
 class OpticalFlow3D(nn.Module):
@@ -41,11 +41,8 @@ class OpticalFlow3D(nn.Module):
         self.fc2 = nn.Linear(batch_size, 3 * 127 * 344 * 344)
         #self.fc = nn.Linear(128, 3)
     def forward(self, x):
-        print("input shape: {}".format(x.shape))
         x = self.conv1(x)
-        print("after conv: {}".format(x.shape))
         x = self.bn1(x)
-        print("after bn: {}".format(x.shape))
         x = self.relu1(x)
         x = self.pool1(x)
 
@@ -96,7 +93,6 @@ class OpticalFlowDataset(torch.utils.data.Dataset):
                 torch.manual_seed(worker_info.id)
                 np.random.seed(worker_info.id)
                 random.seed(worker_info.id)
-
             index = index % len(self.image_list)
             valid = None
             flow = read_gen(self.flow_list[index])
@@ -130,8 +126,10 @@ class OpticalFlowDataset(torch.utils.data.Dataset):
 if __name__ == '__main__':
         
     # Define your model
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = OpticalFlow3D().to(device)
+    model = OpticalFlow3D()
+    model = model.cuda()
+    model = nn.DataParallel(model, [0,1])
+    model.train()
 
     # Define a loss function
     criterion = nn.MSELoss()
@@ -145,7 +143,7 @@ if __name__ == '__main__':
     dataset = OpticalFlowDataset()
 
     # Create the data loader
-    dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
+    dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, )
 
     # Define a loss function
     criterion = nn.MSELoss()
@@ -156,28 +154,28 @@ if __name__ == '__main__':
     # Train the model
     epoch_num = 1000
     for epoch in range(epoch_num):
-        for i, (inputs, targets,_ ) in enumerate(dataloader):
+        for i, data_blob in enumerate(dataloader):
+            (inputs, targets,_ ) = [x.cuda() for x in data_blob]
             # Zero the gradients
             optimizer.zero_grad()
 
             # Forward pass
             outputs = model(inputs)
             loss = criterion(outputs, targets)
+
+
+            # Backward pass and optimization
+            loss.backward()
+            optimizer.step()
+
+        # Print the loss every 20 epochs
+        if (epoch+1) % 10 == 0:
+            print('Epoch [{}/{}], Loss: {:.4f}'.format(epoch+1, epoch_num, loss.item()))
             print(outputs[0].min())
             print(outputs[0].max())
             print("----------------------")
             print(targets[0].min())
             print(targets[0].max())
-
-            # Backward pass and optimization
-            loss.backward()
-            optimizer.step()
-            print('Epoch [{}/{}], Loss: {:.4f}'.format(epoch+1, epoch_num, loss.item()))
-            print("")
-
-            # Print the loss every 10 epochs
-        #  if (epoch+1) % 10 == 0:
-        #      print('Epoch [{}/{}], Loss: {:.4f}'.format(epoch+1, 50, loss.item()))
-
+            print("\n")
     # Save the model
     torch.save(model.state_dict(), 'optical_flow_3d.pt')
