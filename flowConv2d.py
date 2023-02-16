@@ -21,24 +21,24 @@ class OpticalFlow2D(nn.Module):
     def __init__(self):
         super(OpticalFlow2D, self).__init__()
 
-        self.conv1 = nn.Conv2d(in_channels=2, out_channels=16, kernel_size=(3,3), stride=1, padding=1)
-        self.bn1 = nn.BatchNorm2d(16)
+        self.conv1 = nn.Conv2d(in_channels=2, out_channels=32, kernel_size=(3,3), stride=1, padding=1)
+        self.bn1 = nn.BatchNorm2d(32)
         self.relu1 = nn.ReLU()
         self.pool1 = nn.MaxPool2d(kernel_size=2, stride=2)
 
-        self.conv2 = nn.Conv2d(in_channels=16, out_channels=32, kernel_size=(3,3), stride=1, padding=1)
-        self.bn2 = nn.BatchNorm2d(32)
+        self.conv2 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=(3,3), stride=1, padding=1)
+        self.bn2 = nn.BatchNorm2d(64)
         self.relu2 = nn.ReLU()
         self.pool2 = nn.MaxPool2d(kernel_size=2, stride=2)
 
-        self.conv3 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=(3,3), stride=1, padding=1)
-        self.bn3 = nn.BatchNorm2d(64)
+        self.conv3 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=(3,3), stride=1, padding=1)
+        self.bn3 = nn.BatchNorm2d(128)
         self.relu3 = nn.ReLU()
         self.pool3 = nn.MaxPool2d(kernel_size=2, stride=2)
-        self.fc1 = nn.Linear(64 * 43 * 43, 64 * 15 * 43 * 2)
+        self.fc1 = nn.Linear(128 * 43 * 43, 128 * 15 * 43 * 2)
         self.relu4 = nn.ReLU()
 
-        self.fc2 = nn.Linear(64 * 15 * 43, 344 * 127 * 2)
+        self.fc2 = nn.Linear(128 * 15 * 43, 344 * 127 * 2)
         #self.fc = nn.Linear(128, 3)
     def forward(self, x):
         x = self.conv1(x)
