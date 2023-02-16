@@ -14,31 +14,31 @@ from glob import glob
 import os.path as osp
 from utils.frame_utils import read_gen
      
-batch_size = 5
+batch_size = 64
 import torch.nn as nn
 
 class OpticalFlow2D(nn.Module):
     def __init__(self):
         super(OpticalFlow2D, self).__init__()
         print("Building model...")
-        self.conv1 = nn.Conv2d(in_channels=2, out_channels=32, kernel_size=(3,3), stride=1, padding=1)
-        self.bn1 = nn.BatchNorm2d(32)
+        self.conv1 = nn.Conv2d(in_channels=2, out_channels=64, kernel_size=(3,3), stride=1, padding=1)
+        self.bn1 = nn.BatchNorm2d(64)
         self.relu1 = nn.ReLU()
         self.pool1 = nn.MaxPool2d(kernel_size=2, stride=2)
 
         print("Layers 1 done")
-        self.conv2 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=(3,3), stride=1, padding=1)
-        self.bn2 = nn.BatchNorm2d(64)
+        self.conv2 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=(3,3), stride=1, padding=1)
+        self.bn2 = nn.BatchNorm2d(128)
         self.relu2 = nn.ReLU()
         self.pool2 = nn.MaxPool2d(kernel_size=2, stride=2)
         print("Layers 2 done")
-        self.conv3 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=(3,3), stride=1, padding=1)
-        self.bn3 = nn.BatchNorm2d(128)
+        self.conv3 = nn.Conv2d(in_channels=128, out_channels=256, kernel_size=(3,3), stride=1, padding=1)
+        self.bn3 = nn.BatchNorm2d(256)
         self.relu3 = nn.ReLU()
         self.pool3 = nn.MaxPool2d(kernel_size=2, stride=2)
 
         print("Layers 3 done")
-        self.fc1 = nn.Linear(128 * 43 * 15, 512)
+        self.fc1 = nn.Linear(256 * 43 * 15, 512)
         self.relu4 = nn.ReLU()
         print("Layers 4 done")
         self.fc2 = nn.Linear(512, 2 * 127 * 344)
@@ -85,6 +85,7 @@ class OpticalFlowDataset(torch.utils.data.Dataset):
             if split != 'test':
                 self.flow_list += sorted(glob(osp.join(flow_root,
                                             scene, '*.mvf')))     
+        print("Traning data size: ", len(self.image_list))
 
     def __len__(self):
         return len(self.image_list)
@@ -155,10 +156,10 @@ if __name__ == '__main__':
     optimizer = optim.Adam(model.parameters(), lr=0.001)
 
     # Train the model
-    epoch_num = 50
+    epoch_num = 20
     for epoch in range(epoch_num):
         print("Starting training epoch {} out of {}".format(epoch+1, epoch_num))
-        for i, data_blob in enumerate(dataloader):
+        for i, data_blob in tqdm(enumerate(dataloader), total=len(dataloader)):
             (inputs, targets,_ ) = [x.cuda() for x in data_blob]
             # Zero the gradients
             optimizer.zero_grad()

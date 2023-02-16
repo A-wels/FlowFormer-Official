@@ -12,3 +12,4 @@ checkpoints*
 .venv
 viz_results
 NN_checkpoints
+*.pt
