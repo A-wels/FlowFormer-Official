@@ -20,26 +20,30 @@ import torch.nn as nn
 class OpticalFlow2D(nn.Module):
     def __init__(self):
         super(OpticalFlow2D, self).__init__()
-
+        print("Building model...")
         self.conv1 = nn.Conv2d(in_channels=2, out_channels=32, kernel_size=(3,3), stride=1, padding=1)
         self.bn1 = nn.BatchNorm2d(32)
         self.relu1 = nn.ReLU()
         self.pool1 = nn.MaxPool2d(kernel_size=2, stride=2)
 
+        print("Layers 1 done")
         self.conv2 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=(3,3), stride=1, padding=1)
         self.bn2 = nn.BatchNorm2d(64)
         self.relu2 = nn.ReLU()
         self.pool2 = nn.MaxPool2d(kernel_size=2, stride=2)
-
+        print("Layers 2 done")
         self.conv3 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=(3,3), stride=1, padding=1)
         self.bn3 = nn.BatchNorm2d(128)
         self.relu3 = nn.ReLU()
         self.pool3 = nn.MaxPool2d(kernel_size=2, stride=2)
-        self.fc1 = nn.Linear(128 * 43 * 43, 128 * 15 * 43 * 2)
-        self.relu4 = nn.ReLU()
 
-        self.fc2 = nn.Linear(128 * 15 * 43, 344 * 127 * 2)
-        #self.fc = nn.Linear(128, 3)
+        print("Layers 3 done")
+        self.fc1 = nn.Linear(128 * 43 * 15, 512)
+        self.relu4 = nn.ReLU()
+        print("Layers 4 done")
+        self.fc2 = nn.Linear(512, 2 * 127 * 344)
+        print("Layers 5 done")
+
     def forward(self, x):
         x = self.conv1(x)
         x = self.bn1(x)
@@ -55,17 +59,15 @@ class OpticalFlow2D(nn.Module):
         x = self.bn3(x)
         x = self.relu3(x)
         x = self.pool3(x)
-     #   print("after conv: {}".format(x.shape))
-        # flatten input from convolutional layers and pass throug fc layers
-        x = x.view(-1, 412800)        
+        # flatten input from convolutional layers and pass through fc layers
+        x = x.view(-1, x.shape[1] * x.shape[2] * x.shape[3])      
         x = self.fc1(x)
         x = self.relu4(x)
         x = self.fc2(x)
 
         # reshape for output
-        x = x.view(-1, 2, 127,344)
+        x = x.view(-1, 2, 127, 344)
         return x
-
 
 # Define a custom dataset class
 class OpticalFlowDataset(torch.utils.data.Dataset):
@@ -114,7 +116,7 @@ class OpticalFlowDataset(torch.utils.data.Dataset):
 
             img1 = torch.from_numpy(img1).float()
             img2 = torch.from_numpy(img2).float()
-            flow = torch.from_numpy(flow).permute(2, 0, 1).float() 
+            flow = torch.from_numpy(flow).permute(2, 1, 0).float() 
 
             if valid is not None:
                 valid = torch.from_numpy(valid)
@@ -125,11 +127,11 @@ class OpticalFlowDataset(torch.utils.data.Dataset):
 
  # main method
 if __name__ == '__main__':
-        
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # Define your model
-    model = OpticalFlow2D()
+    model = OpticalFlow2D().to(device)
     model = model.cuda()
-    model = nn.DataParallel(model, [0])
+   # model = nn.DataParallel(model, [0,1])
     model.train()
 
     # Define a loss function
@@ -153,8 +155,9 @@ if __name__ == '__main__':
     optimizer = optim.Adam(model.parameters(), lr=0.001)
 
     # Train the model
-    epoch_num = 1000
+    epoch_num = 50
     for epoch in range(epoch_num):
+        print("Starting training epoch {} out of {}".format(epoch+1, epoch_num))
         for i, data_blob in enumerate(dataloader):
             (inputs, targets,_ ) = [x.cuda() for x in data_blob]
             # Zero the gradients
@@ -169,7 +172,7 @@ if __name__ == '__main__':
             loss.backward()
             optimizer.step()
 
-        # Print the loss every 20 epochs
+        # Print the loss every X epochs
         if (epoch+1) % 10 == 0:
             print('Epoch [{}/{}], Loss: {:.4f}'.format(epoch+1, epoch_num, loss.item()))
             print(outputs[0].min())

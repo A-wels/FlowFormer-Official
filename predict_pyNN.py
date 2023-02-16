@@ -2,13 +2,15 @@ import argparse
 import numpy as np
 import torch
 import torch.nn as nn
-from pyTrans import OpticalFlow3D
+from flowConv2d import OpticalFlow2D
+from flowConv3d import OpticalFlow3D
+
 import os
 
 from utils.frame_utils import read_gen
 
 def load_model(model_path):
-    model = OpticalFlow3D()
+    model = OpticalFlow2D()
     model.load_state_dict(torch.load(model_path))
     model.eval()
     return model
@@ -68,6 +70,7 @@ if __name__ == "__main__":
         vector_fields[i][0] = vector_fields[i][0].to(device)
         vector_fields[i][1] = vector_fields[i][1].to(device)
 
+    list_of_images = []
     # predict
     for i in range(len(vector_fields)):
         img1 = vector_fields[i][0]
@@ -79,8 +82,16 @@ if __name__ == "__main__":
         # remove added dimension for batch size
         prediction = prediction.squeeze(0)
         
+        from utils import flow_viz
+        import cv2
+        from visualize_gt_flow import create_gif, generate_vector_visualization
+
         print(prediction)
-        
+        flow_img = flow_viz.flow_to_image(prediction)
+        output_path = os.path.join(args.output, 'viz_results/flow_{}.png'.format(i))
+        cv2.imwrite(output_path, flow_img[:, :, [2,1,0]])
+        generate_vector_visualization(prediction, flow_img, img2, output_path)
+        list_of_images.append(output_path)
         # save prediction as file
         save_path = os.path.join(args.output, 'prediction_{}'.format(i))
         prediction.save(save_path)

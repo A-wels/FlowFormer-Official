@@ -129,7 +129,7 @@ def prepare_raw_image(root_dir, viz_root_dir, fn1, fn2):
     image1 = np.stack((image1,)*3, axis=-1) # convert to 3 channels
     image2 = np.stack((image2,)*3, axis=-1) # convert to 3 channels
 
-  #  image1 = np.array(image1).astype(np.float32)[..., :3]
+  #  image1 = np.array(image1).astype(nflow_vizp.float32)[..., :3]
   #  image2 = np.array(image2).astype(np.float32)[..., :3]
    
     image1 = torch.from_numpy(image1).permute(2, 0, 1).float()
@@ -236,7 +236,7 @@ def generate_raw_pairs(dirname) -> List:
     files = [f for f in files if f.endswith('.v')]
     for id in tqdm(range(len(files)), desc="Generating pairs"):
         if id < len(files)-1:
-            img1 = osp.join(dirname, files[id])
+            img1 = osp.join(dirname, files[0])
             img2 = osp.join(dirname, files[id+1])
             img_pairs.append((img1, img2))
     return img_pairs

@@ -26,16 +26,10 @@ class FlowFormer(nn.Module):
         if cfg.cnet == 'twins':
             self.context_encoder = twins_svt_large(pretrained=self.cfg.pretrain)
         elif cfg.cnet == 'basicencoder':
-           # self.context_encoder = BasicEncoder(output_dim=256, norm_fn='instance')
-
-            # Adjust settings for basic encoder
-            #self.context_encoder = BasicEncoder(output_dim=256, norm_fn='instance', input_dim=2)
-            encoder_layer = nn.TransformerEncoderLayer(d_model=256, nhead=8)
-            self.context_encoder = torch.nn.TransformerEncoder(encoder_layer,6)
+            self.context_encoder = BasicEncoder(output_dim=256, norm_fn='instance')
 
 
     def forward(self, image1, image2, output=None, flow_init=None):
-
         # Following https://github.com/princeton-vl/RAFT/
         image1 = 2 * (image1 / 255.0) - 1.0
         image2 = 2 * (image2 / 255.0) - 1.0
@@ -45,8 +39,8 @@ class FlowFormer(nn.Module):
         if self.cfg.context_concat:
             context = self.context_encoder(torch.cat([image1, image2], dim=1))
         else:
-            print(image1.shape)
             context = self.context_encoder(image1)
+            
         cost_memory = self.memory_encoder(image1, image2, data, context)
 
         flow_predictions = self.memory_decoder(cost_memory, context, data, flow_init=flow_init)

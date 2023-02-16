@@ -182,7 +182,7 @@ class PET(FlowDataset):
         for scene in os.listdir(image_root):
             image_list = sorted(glob(osp.join(image_root, scene, '*.v')))
             for i in range(len(image_list)-1):
-                self.image_list += [[image_list[i], image_list[i+1]]]
+                self.image_list += [[image_list[0], image_list[i+1]]]
                 self.extra_info += [(scene, i)]  # scene and frame_id
 
             if split != 'test':

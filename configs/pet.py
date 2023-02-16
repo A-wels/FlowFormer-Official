@@ -4,16 +4,16 @@ _CN = CN()
 _CN.name = 'default'
 _CN.suffix ='pet'
 _CN.gamma = 0.85
-_CN.max_flow = 4
-_CN.batch_size = 32
+_CN.max_flow = 5
+_CN.batch_size = 6
 _CN.sum_freq = 100
 _CN.val_freq = 5000000
 _CN.image_size = [344, 127]
-_CN.add_noise = False 
+_CN.add_noise = True 
 _CN.critical_params = []
 
 _CN.transformer = 'latentcostformer'
-_CN.restore_ckpt =None#'checkpoints/kitti.pth'
+_CN.restore_ckpt ='checkpoints/pet.pth'
 
 # latentcostformer
 _CN.latentcostformer = CN()
@@ -22,14 +22,14 @@ _CN.latentcostformer.dropout = 0.0
 _CN.latentcostformer.encoder_latent_dim = 256 # in twins, this is 256
 _CN.latentcostformer.query_latent_dim = 64
 _CN.latentcostformer.cost_latent_input_dim = 64
-_CN.latentcostformer.cost_latent_token_num = 16
+_CN.latentcostformer.cost_latent_token_num = 8
 _CN.latentcostformer.cost_latent_dim = 128
 _CN.latentcostformer.arc_type = 'transformer'
 _CN.latentcostformer.cost_heads_num = 1
 # encoder
 _CN.latentcostformer.pretrain = True
 _CN.latentcostformer.context_concat = False
-_CN.latentcostformer.encoder_depth = 2
+_CN.latentcostformer.encoder_depth = 3
 _CN.latentcostformer.feat_cross_attn = False
 _CN.latentcostformer.patch_size = 8
 _CN.latentcostformer.patch_embed = 'single'
@@ -48,7 +48,7 @@ _CN.latentcostformer.use_mlp = False
 _CN.latentcostformer.vertical_conv = False
 
 # decoder
-_CN.latentcostformer.decoder_depth = 32
+_CN.latentcostformer.decoder_depth = 12
 _CN.latentcostformer.critical_params = ['cost_heads_num', 'vert_c_dim', 'cnet', 'pretrain' , 'add_flow_token', 'encoder_depth', 'gma', 'cost_encoder_res']
 
 ### TRAINER
@@ -58,7 +58,7 @@ _CN.trainer.optimizer = 'adamw'
 _CN.trainer.canonical_lr = 12.5e-5
 _CN.trainer.adamw_decay = 1e-5
 _CN.trainer.clip = 1.0
-_CN.trainer.num_steps = 2500
+_CN.trainer.num_steps = 400
 _CN.trainer.epsilon = 1e-8
 _CN.trainer.anneal_strategy = 'linear'
 def get_cfg():

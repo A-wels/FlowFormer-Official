@@ -9,8 +9,8 @@ class ResidualBlock(nn.Module):
     def __init__(self, in_planes, planes, norm_fn='group', stride=1):
         super(ResidualBlock, self).__init__()
   
-        self.conv1 = nn.Conv3d(in_planes, planes, kernel_size=3, padding=1, stride=stride)
-        self.conv2 = nn.Conv3d(planes, planes, kernel_size=3, padding=1)
+        self.conv1 = nn.Conv2d(in_planes, planes, kernel_size=3, padding=1, stride=stride)
+        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, padding=1)
         self.relu = nn.ReLU(inplace=True)
 
         num_groups = planes // 8
@@ -28,10 +28,10 @@ class ResidualBlock(nn.Module):
                 self.norm3 = nn.BatchNorm2d(planes)
         
         elif norm_fn == 'instance':
-            self.norm1 = nn.InstanceNorm3d(planes)
-            self.norm2 = nn.InstanceNorm3d(planes)
+            self.norm1 = nn.InstanceNorm2d(planes)
+            self.norm2 = nn.InstanceNorm2d(planes)
             if not stride == 1:
-                self.norm3 = nn.InstanceNorm3d(planes)
+                self.norm3 = nn.InstanceNorm2d(planes)
 
         elif norm_fn == 'none':
             self.norm1 = nn.Sequential()
@@ -44,7 +44,7 @@ class ResidualBlock(nn.Module):
         
         else:    
             self.downsample = nn.Sequential(
-                nn.Conv3d(in_planes, planes, kernel_size=1, stride=stride), self.norm3)
+                nn.Conv2d(in_planes, planes, kernel_size=1, stride=stride), self.norm3)
 
 
     def forward(self, x):
@@ -121,43 +121,39 @@ class BasicEncoder(nn.Module):
     def __init__(self, input_dim=3, output_dim=128, norm_fn='batch', dropout=0.0):
         super(BasicEncoder, self).__init__()
         self.norm_fn = norm_fn
-        #mul = input_dim // 3
-        mul = input_dim // 2
+        mul = input_dim // 3
 
         if self.norm_fn == 'group':
             self.norm1 = nn.GroupNorm(num_groups=8, num_channels=64 * mul)
             
         elif self.norm_fn == 'batch':
-            self.norm1 = nn.BatchNorm3d(64 * mul)
+            self.norm1 = nn.BatchNorm2d(64 * mul)
 
         elif self.norm_fn == 'instance':
-            self.norm1 = nn.InstanceNorm3d(64 * mul)
+            self.norm1 = nn.InstanceNorm2d(64 * mul)
 
         elif self.norm_fn == 'none':
             self.norm1 = nn.Sequential()
-        print(input_dim)
-        self.conv1 = nn.Conv3d(input_dim, 64 * mul, kernel_size=7, stride=2, padding=3)
+
+        self.conv1 = nn.Conv2d(input_dim, 64 * mul, kernel_size=7, stride=2, padding=3)
         self.relu1 = nn.ReLU(inplace=True)
 
         self.in_planes = 64 * mul
-
         self.layer1 = self._make_layer(64 * mul,  stride=1)
         self.layer2 = self._make_layer(96 * mul, stride=2)
         self.layer3 = self._make_layer(128 * mul, stride=2)
 
         # output convolution
-#        self.conv2 = nn.Conv2d(128 * mul, output_dim, kernel_size=1)
-
-        self.conv2 = nn.Conv3d(128 * mul, output_dim, kernel_size=1)
+        self.conv2 = nn.Conv2d(128 * mul, output_dim, kernel_size=1)
 
         self.dropout = None
         if dropout > 0:
-            self.dropout = nn.Dropout3d(p=dropout)
+            self.dropout = nn.Dropout2d(p=dropout)
 
         for m in self.modules():
-            if isinstance(m, nn.Conv3d):
+            if isinstance(m, nn.Conv2d):
                 nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
-            elif isinstance(m, (nn.BatchNorm3d, nn.InstanceNorm3d, nn.GroupNorm)):
+            elif isinstance(m, (nn.BatchNorm2d, nn.InstanceNorm2d, nn.GroupNorm)):
                 if m.weight is not None:
                     nn.init.constant_(m.weight, 1)
                 if m.bias is not None:
@@ -186,12 +182,15 @@ class BasicEncoder(nn.Module):
         if is_list:
             batch_dim = x[0].shape[0]
             x = torch.cat(x, dim=0)
+
         x = self.conv1(x)
         x = self.norm1(x)
         x = self.relu1(x)
+
         x = self.layer1(x)
         x = self.layer2(x)
         x = self.layer3(x)
+
         x = self.conv2(x)
 
         if self.training and self.dropout is not None:
@@ -199,6 +198,7 @@ class BasicEncoder(nn.Module):
 
         if is_list:
             x = torch.split(x, [batch_dim, batch_dim], dim=0)
+
         return x
 
 
