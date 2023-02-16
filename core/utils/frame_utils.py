@@ -59,15 +59,13 @@ def readFlow3d(fn):
             return np.resize(data, (int(h), int(w), 2))
 
 
-def convert_mvf_to_flo(mvf_file) -> str:
-    mvf = np.fromfile(mvf_file, dtype=np.float32)
+def convert_mvf_to_flo(mvf, mvf_name) -> str:
     mvf = np.reshape(mvf, [*[344,127],2], order='F')
-    flo_name = mvf_file.replace('.mvf', '.flo')
+    flo_name = mvf_name.replace('.mvf', '.flo')
     writeFlow(flo_name, mvf)
     return flo_name
 
-def convert_3dmvf_to_flo(mvf_file):
-    mvf = np.fromfile(mvf_file, dtype=np.float32)
+def convert_3dmvf_to_flo(mvf):
     mvf = np.reshape(mvf, [*[344,344,127],3], order='F')
    # mvf = mvf[::2, ::2, :]
     return mvf
@@ -162,7 +160,7 @@ def writeFlowKITTI(filename, uv):
     cv2.imwrite(filename, uv[..., ::-1])
     
 
-def read_gen(file_name, pil=False, is_3d=True):
+def read_gen(file_name, pil=False):
     ext = splitext(file_name)[-1]
     if ext == '.png' or ext == '.jpeg' or ext == '.ppm' or ext == '.jpg':
         return Image.open(file_name)
@@ -177,9 +175,11 @@ def read_gen(file_name, pil=False, is_3d=True):
         else:
             return flow[:, :, :-1]
     elif ext == '.v':
+        v = np.fromfile(file_name, 'float32')
+        is_3d = len(v) == 344*344*127
         if is_3d:
             # create image from generated data
-            data =  np.reshape(np.fromfile(file_name, 'float32'),[344,344,127], order='F')
+            data =  np.reshape(v,[344,344,127], order='F')
             data = ((data - data.min()) * (1/(data.max() - data.min()) * 255)).astype('uint8')
             #data = data[::2, ::2, :]
         #  data = np.transpose(data, (1, 0))
@@ -191,6 +191,8 @@ def read_gen(file_name, pil=False, is_3d=True):
         #  data = np.transpose(data, (1, 0))
             return data
     elif ext == '.mvf':
+        mvf = np.fromfile(file_name, dtype=np.float32)
+        is_3d = len(mvf) == 344*344*127*3
         if is_3d:
            return convert_3dmvf_to_flo(file_name)
         else:
@@ -200,5 +202,5 @@ def read_gen(file_name, pil=False, is_3d=True):
                 return flow
             # return np.transpose(flow, (1,0, 2))
             else:
-                 return read_gen(convert_mvf_to_flo(file_name), is_3d)
+                 return read_gen(convert_mvf_to_flo(mvf, file_name))
     return []

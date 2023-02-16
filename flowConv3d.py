@@ -35,10 +35,10 @@ class OpticalFlow3D(nn.Module):
         self.bn3 = nn.BatchNorm3d(128)
         self.relu3 = nn.ReLU()
         self.pool3 = nn.MaxPool3d(kernel_size=2, stride=2)
-        self.fc1 = nn.Linear(128 * 15 * 43 * 43, batch_size)
+        self.fc1 = nn.Linear(128 * 127 * 344 * 344, 500)
         self.relu4 = nn.ReLU()
 
-        self.fc2 = nn.Linear(batch_size, 3 * 127 * 344 * 344)
+        self.fc2 = nn.Linear(500, 3 * 127 * 344 * 344)
         #self.fc = nn.Linear(128, 3)
     def forward(self, x):
         x = self.conv1(x)
@@ -128,7 +128,7 @@ if __name__ == '__main__':
     # Define your model
     model = OpticalFlow3D()
     model = model.cuda()
-    model = nn.DataParallel(model, [0,1])
+    model = nn.DataParallel(model, [0])
     model.train()
 
     # Define a loss function
