@@ -14,7 +14,7 @@ from glob import glob
 import os.path as osp
 from utils.frame_utils import read_gen
      
-batch_size = 64
+batch_size = 32
 import torch.nn as nn
 
 # Based on FlowNet2: https://arxiv.org/abs/1612.01925
@@ -24,37 +24,40 @@ class OpticalFlow2D(nn.Module):
         print("Building model...")
         self.conv1 = nn.Conv2d(in_channels=2, out_channels=64, kernel_size=(7,7), stride=2, )
         self.bn1 = nn.BatchNorm2d(64)
-        self.relu1 = nn.ReLU()
+        self.relu1 = nn.LeakyReLU()
 
         print("Layers 1 done")
         self.conv2 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=(5,5), stride=2)
         self.bn2 = nn.BatchNorm2d(128)
-        self.relu2 = nn.ReLU()
+        self.relu2 = nn.LeakyReLU()
 
 
         print("Layers 2 done")
         self.conv3 = nn.Conv2d(in_channels=128, out_channels=256, kernel_size=(5,5), stride=2)
         self.bn3 = nn.BatchNorm2d(256)
-        self.relu3 = nn.ReLU()
+        self.relu3 = nn.LeakyReLU()
         print("Layers 3 done")
 
         self.conv4 = nn.Conv2d(in_channels=256, out_channels=512, kernel_size=(3,3), stride=1)
         self.bn4 = nn.BatchNorm2d(512)
-        self.relu4 = nn.ReLU()
+        self.relu4 = nn.LeakyReLU()
         print("Layers 4 done")
 
-        self.conv5 = nn.Conv2d(in_channels=512, out_channels=512, kernel_size=(3,3), stride=1)
-        self.bn5 = nn.BatchNorm2d(512)
-        self.relu5 = nn.ReLU()
+        self.conv5 = nn.Conv2d(in_channels=512, out_channels=1024, kernel_size=(3,3), stride=1)
+        self.bn5 = nn.BatchNorm2d(1024)
+        self.relu5 = nn.LeakyReLU()
         print("Layers 5 done")
 
-        self.conv6 = nn.Conv2d(in_channels=512, out_channels=1024, kernel_size=(3,3), stride=1)
-        self.bn6 = nn.BatchNorm2d(1024)
-        self.relu6 = nn.ReLU()
-        print("Layers 6 done")
+      #  self.conv6 = nn.Conv2d(in_channels=1024, out_channels=1024, kernel_size=(3,3), stride=1)
+      #  self.bn6 = nn.BatchNorm2d(1024)
+      #  self.relu6 = nn.LeakyReLU()
+      #  print("Layers 6 done")
+        self.fc1 = nn.Linear(1024 * 36 * 9, 2048)
 
-        self.fc1 = nn.Linear(1024 * 34 * 7, 2048)
-        self.relu4 = nn.ReLU()
+       # self.fc1 = nn.Linear(1024 * 34 * 7, 2048)
+        self.relu4 = nn.LeakyReLU()
+        self.drop = nn.Dropout2d(0.2)
+
         print("Layers 7 done")
         self.fc2 = nn.Linear(2048, 2 * 127 * 344)
         print("Layers 8 done")
@@ -65,12 +68,14 @@ class OpticalFlow2D(nn.Module):
         x = self.relu3(self.bn3(self.conv3(x)))
         x = self.relu4(self.bn4(self.conv4(x)))
         x = self.relu5(self.bn5(self.conv5(x)))
-        x = self.relu6(self.bn6(self.conv6(x)))
+     #   x = self.relu6(self.bn6(self.conv6(x)))
 
         # flatten input from convolutional layers and pass through fc layers
         x = x.view(-1, x.shape[1] * x.shape[2] * x.shape[3])      
         x = self.fc1(x)
         x = self.relu4(x)
+        x = self.drop(x)
+
         x = self.fc2(x)
 
         # reshape for output
@@ -138,7 +143,10 @@ class OpticalFlowDataset(torch.utils.data.Dataset):
 if __name__ == '__main__':
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # Define your model
-    model = OpticalFlow2D().to(device)
+    #model = OpticalFlow2D().to(device)
+    model = OpticalFlow2D()
+    model.load_state_dict(torch.load("optical_flow_2d.pt"))
+    model = model.to(device)
     model = model.cuda()
    # model = nn.DataParallel(model, [0,1])
     model.train()
@@ -161,10 +169,10 @@ if __name__ == '__main__':
     criterion = nn.MSELoss()
 
     # Define an optimizer
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=0.0001)
 
     # Train the model
-    epoch_num = 20
+    epoch_num = 100
     for epoch in range(epoch_num):
         print("Starting training epoch {} out of {}".format(epoch+1, epoch_num))
         for i, data_blob in tqdm(enumerate(dataloader), total=len(dataloader)):
