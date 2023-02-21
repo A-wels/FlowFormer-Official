@@ -14,6 +14,7 @@ from utils.frame_utils import read_gen
 
 def load_model(model_path):
     model = OpticalFlow2D()
+    model = nn.DataParallel(model, [0,1])
     model.load_state_dict(torch.load(model_path))
     model.eval()
     return model

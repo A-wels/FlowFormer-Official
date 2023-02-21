@@ -16,67 +16,50 @@ from utils.frame_utils import read_gen
 from myutils.EPELoss import EPELoss
 batch_size = 128
 import torch.nn as nn
+import torch.nn.functional as F
 
 # Based on FlowNet2: https://arxiv.org/abs/1612.01925
+def conv(in_channels, out_channels, kernel_size=3, stride=1):
+    return nn.Sequential(
+        nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding=(kernel_size - 1) // 2),
+        nn.LeakyReLU(0.1, inplace=True)
+    )
 class OpticalFlow2D(nn.Module):
     def __init__(self):
         super(OpticalFlow2D, self).__init__()
         print("Building model...")
-        self.conv1 = nn.Conv2d(in_channels=2, out_channels=64, kernel_size=(7,7), stride=2, )
-        self.bn1 = nn.BatchNorm2d(64)
-        self.relu1 = nn.LeakyReLU()
+        self.conv1 = conv(2, 64, 3, 1)
+        self.conv2 = conv(64, 128, 3, 2)
+        self.conv3 = conv(128, 256, 3, 2)
+        self.conv4 = conv(256, 512, 3, 2)
+        self.conv5 = conv(512, 512, 3, 2)
 
-        print("Layers 1 done")
-        self.conv2 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=(5,5), stride=2)
-        self.bn2 = nn.BatchNorm2d(128)
-        self.relu2 = nn.LeakyReLU()
+        self.fc1 = nn.Linear(512 * 22 * 8, 512)
 
-
-        print("Layers 2 done")
-        self.conv3 = nn.Conv2d(in_channels=128, out_channels=256, kernel_size=(5,5), stride=2)
-        self.bn3 = nn.BatchNorm2d(256)
-        self.relu3 = nn.LeakyReLU()
-        print("Layers 3 done")
-
-        #self.conv4 = nn.Conv2d(in_channels=256, out_channels=512, kernel_size=(3,3), stride=1)
-        #self.bn4 = nn.BatchNorm2d(512)
-        #self.relu4 = nn.LeakyReLU()
-        #print("Layers 4 done")
-
-        #self.conv5 = nn.Conv2d(in_channels=512, out_channels=1024, kernel_size=(3,3), stride=1)
-        #self.bn5 = nn.BatchNorm2d(1024)
-        #self.relu5 = nn.LeakyReLU()
-        #print("Layers 5 done")
-
-      #  self.conv6 = nn.Conv2d(in_channels=1024, out_channels=1024, kernel_size=(3,3), stride=1)
-      #  self.bn6 = nn.BatchNorm2d(1024)
-      #  self.relu6 = nn.LeakyReLU()
-      #  print("Layers 6 done")
-        self.fc1 = nn.Linear(256 * 40 * 13, 512)
-
-       # self.fc1 = nn.Linear(1024 * 34 * 7, 2048)
-        self.relu4 = nn.LeakyReLU()
         self.drop = nn.Dropout2d(0.2)
 
-        print("Layers 7 done")
         self.fc2 = nn.Linear(512, 2 * 127 * 344)
-        print("Layers 8 done")
+        # define attention layer
+      #  self.attention = nn.Conv2d(512, 1, 1, 1, 0)
 
     def forward(self, x):
-        x = self.relu1(self.bn1(self.conv1(x)))
-        x = self.relu2(self.bn2(self.conv2(x)))
-        x = self.relu3(self.bn3(self.conv3(x)))
-       # print(x.shape)
-    #    x = self.relu4(self.bn4(self.conv4(x)))
-        #x = self.relu5(self.bn5(self.conv5(x)))
-     #   x = self.relu6(self.bn6(self.conv6(x)))
+        x = self.conv1(x)
+        x = self.conv2(x)
+        x = self.conv3(x)
+        x = self.conv4(x)
+        x = self.conv5(x)
+        #print(x.shape)
+        # compute attention weights for each spatial location
+      #  attention_weights = self.attention(x)
+        # reshape attention weights to match feature map dimensions
+       # x = x * attention_weights
 
+       # attention_weights = attention_weights.view(-1, 1, x.shape[2], x.shape[3])
+        # apply attention weights to feature maps
+        x = x.view(-1, x.shape[1] * x.shape[2] * x.shape[3])
         # flatten input from convolutional layers and pass through fc layers
-        x = x.view(-1, x.shape[1] * x.shape[2] * x.shape[3])      
         x = self.fc1(x)
-        x = self.relu4(x)
         x = self.drop(x)
-
         x = self.fc2(x)
 
         # reshape for output
@@ -194,7 +177,7 @@ if __name__ == '__main__':
     optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=0.0001)
 
     # Train the model
-    epoch_num = 5
+    epoch_num = 15
     for epoch in range(epoch_num):
         print("Starting training epoch {} out of {}".format(epoch+1, epoch_num))
         for i, data_blob in tqdm(enumerate(dataloader), total=len(dataloader)):
