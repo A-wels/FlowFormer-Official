@@ -82,10 +82,12 @@ if __name__ == "__main__":
         # add dimension for batch size
         input_images = input_images.unsqueeze(0)
         prediction = model(input_images)
+        print(prediction.max(), prediction.min())        
+
         # remove added dimension for batch size
         prediction = prediction.squeeze(0).cpu().detach().numpy()
-        prediction = np.transpose(prediction, (1,2,0)) * 10
-        
+        prediction = np.transpose(prediction, (1,2,0))# * 10
+        print(prediction.max(), prediction.min())        
         flow_img = flow_viz.flow_to_image(prediction)
         output_path = os.path.join(args.output, 'flow_{}.png'.format(i))
         cv2.imwrite(output_path, flow_img[:, :, [2,1,0]])

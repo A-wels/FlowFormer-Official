@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "predict_pyNN.py", line 58, in <module>
+    model = load_model(args.model_path).to(device)
+  File "predict_pyNN.py", line 17, in load_model
+    model.load_state_dict(torch.load(model_path))
+  File "/opt/conda/lib/python3.7/site-packages/torch/nn/modules/module.py", line 1052, in load_state_dict
+    self.__class__.__name__, "\n\t".join(error_msgs)))
+RuntimeError: Error(s) in loading state_dict for OpticalFlow2D:
+        Missing key(s) in state_dict: "conv1.weight", "conv1.bias", "bn1.weight", "bn1.bias", "bn1.running_mean", "bn1.running_var", "conv2.weight", "conv2.bias", "bn2.weight", "bn2.bias", "bn2.running_mean", "bn2.running_var", "conv3.weight", "conv3.bias", "bn3.weight", "bn3.bias", "bn3.running_mean", "bn3.running_var", "fc1.weight", "fc1.bias", "fc2.weight", "fc2.bias". 
+        Unexpected key(s) in state_dict: "module.conv1.weight", "module.conv1.bias", "module.bn1.weight", "module.bn1.bias", "module.bn1.running_mean", "module.bn1.running_var", "module.bn1.num_batches_tracked", "module.conv2.weight", "module.conv2.bias", "module.bn2.weight", "module.bn2.bias", "module.bn2.running_mean", "module.bn2.running_var", "module.bn2.num_batches_tracked", "module.conv3.weight", "module.conv3.bias", "module.bn3.weight", "module.bn3.bias", "module.bn3.running_mean", "module.bn3.running_var", "module.bn3.num_batches_tracked", "module.fc1.weight", "module.fc1.bias", "module.fc2.weight", "module.fc2.bias". 
+(base) root@62848269dada:~/FlowFormer-Official# 

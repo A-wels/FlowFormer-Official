@@ -13,8 +13,8 @@ from datasets import PET
 from glob import glob
 import os.path as osp
 from utils.frame_utils import read_gen
-     
-batch_size = 32
+from myutils.EPELoss import EPELoss
+batch_size = 128
 import torch.nn as nn
 
 # Based on FlowNet2: https://arxiv.org/abs/1612.01925
@@ -38,36 +38,37 @@ class OpticalFlow2D(nn.Module):
         self.relu3 = nn.LeakyReLU()
         print("Layers 3 done")
 
-        self.conv4 = nn.Conv2d(in_channels=256, out_channels=512, kernel_size=(3,3), stride=1)
-        self.bn4 = nn.BatchNorm2d(512)
-        self.relu4 = nn.LeakyReLU()
-        print("Layers 4 done")
+        #self.conv4 = nn.Conv2d(in_channels=256, out_channels=512, kernel_size=(3,3), stride=1)
+        #self.bn4 = nn.BatchNorm2d(512)
+        #self.relu4 = nn.LeakyReLU()
+        #print("Layers 4 done")
 
-        self.conv5 = nn.Conv2d(in_channels=512, out_channels=1024, kernel_size=(3,3), stride=1)
-        self.bn5 = nn.BatchNorm2d(1024)
-        self.relu5 = nn.LeakyReLU()
-        print("Layers 5 done")
+        #self.conv5 = nn.Conv2d(in_channels=512, out_channels=1024, kernel_size=(3,3), stride=1)
+        #self.bn5 = nn.BatchNorm2d(1024)
+        #self.relu5 = nn.LeakyReLU()
+        #print("Layers 5 done")
 
       #  self.conv6 = nn.Conv2d(in_channels=1024, out_channels=1024, kernel_size=(3,3), stride=1)
       #  self.bn6 = nn.BatchNorm2d(1024)
       #  self.relu6 = nn.LeakyReLU()
       #  print("Layers 6 done")
-        self.fc1 = nn.Linear(1024 * 36 * 9, 2048)
+        self.fc1 = nn.Linear(256 * 40 * 13, 512)
 
        # self.fc1 = nn.Linear(1024 * 34 * 7, 2048)
         self.relu4 = nn.LeakyReLU()
         self.drop = nn.Dropout2d(0.2)
 
         print("Layers 7 done")
-        self.fc2 = nn.Linear(2048, 2 * 127 * 344)
+        self.fc2 = nn.Linear(512, 2 * 127 * 344)
         print("Layers 8 done")
 
     def forward(self, x):
         x = self.relu1(self.bn1(self.conv1(x)))
         x = self.relu2(self.bn2(self.conv2(x)))
         x = self.relu3(self.bn3(self.conv3(x)))
-        x = self.relu4(self.bn4(self.conv4(x)))
-        x = self.relu5(self.bn5(self.conv5(x)))
+       # print(x.shape)
+    #    x = self.relu4(self.bn4(self.conv4(x)))
+        #x = self.relu5(self.bn5(self.conv5(x)))
      #   x = self.relu6(self.bn6(self.conv6(x)))
 
         # flatten input from convolutional layers and pass through fc layers
@@ -139,20 +140,44 @@ class OpticalFlowDataset(torch.utils.data.Dataset):
             input_images = torch.stack([img1,img2], dim=0)
             return input_images, flow, valid.float()
 
+
+def validate():
+    model.eval()
+    dataset = OpticalFlowDataset(split='validation')
+    dataloader = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=True, )
+    epe_list = []
+    criterion = EPELoss()
+    with torch.no_grad():
+        for i, data_blob in tqdm(enumerate(dataloader), total=len(dataloader)):
+            (inputs, targets,_ ) = [x.cuda() for x in data_blob]            
+            output = model(inputs)
+            epe = criterion(output, targets)
+            epe_list.append(epe.detach().cpu())
+    print(len(epe_list))
+    epe = np.mean(epe_list)
+    # px1: percentage of pixels with EPE < 1
+    px1 = np.mean(np.array(epe_list) < 1)
+    # px3: percentage of pixels with EPE < 3
+    px3 = np.mean(np.array(epe_list) < 3)
+    # px5: percentage of pixels with EPE < 5
+    px5 = np.mean(np.array(epe_list) < 5)
+
+    print("EPE: {:.3f}, px1: {:.3f}, px3: {:.3f}, px5: {:.3f}".format(epe, px1, px3, px5))
  # main method
 if __name__ == '__main__':
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # Define your model
-    #model = OpticalFlow2D().to(device)
-    model = OpticalFlow2D()
-    model.load_state_dict(torch.load("optical_flow_2d.pt"))
+    model = OpticalFlow2D().to(device)
+    #model = OpticalFlow2D()
+    #model.load_state_dict(torch.load("optical_flow_2d.pt"))
     model = model.to(device)
     model = model.cuda()
-   # model = nn.DataParallel(model, [0,1])
+    model = nn.DataParallel(model, [0,1])
     model.train()
 
     # Define a loss function
-    criterion = nn.MSELoss()
+    #criterion = nn.MSELoss()
+    criterion = EPELoss()
 
     # Define an optimizer
     optimizer = optim.Adam(model.parameters(), lr=0.001)
@@ -165,14 +190,11 @@ if __name__ == '__main__':
     # Create the data loader
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, )
 
-    # Define a loss function
-    criterion = nn.MSELoss()
-
     # Define an optimizer
     optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=0.0001)
 
     # Train the model
-    epoch_num = 100
+    epoch_num = 5
     for epoch in range(epoch_num):
         print("Starting training epoch {} out of {}".format(epoch+1, epoch_num))
         for i, data_blob in tqdm(enumerate(dataloader), total=len(dataloader)):
@@ -184,13 +206,12 @@ if __name__ == '__main__':
             outputs = model(inputs)
             loss = criterion(outputs, targets)
 
-
             # Backward pass and optimization
             loss.backward()
             optimizer.step()
 
         # Print the loss every X epochs
-        if (epoch+1) % 10 == 0:
+        if (epoch+1) % 1 == 0:
             print('Epoch [{}/{}], Loss: {:.4f}'.format(epoch+1, epoch_num, loss.item()))
             print(outputs[0].min())
             print(outputs[0].max())
@@ -199,4 +220,5 @@ if __name__ == '__main__':
             print(targets[0].max())
             print("\n")
     # Save the model
+    validate()
     torch.save(model.state_dict(), 'optical_flow_2d.pt')
