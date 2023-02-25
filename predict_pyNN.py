@@ -9,7 +9,7 @@ from utils import flow_viz
 import cv2
 from visualize_gt_flow import create_gif, generate_vector_visualization
 import os
-
+import utils.frame_utils as frame_utils
 from utils.frame_utils import read_gen
 
 def load_model(model_path):
@@ -82,21 +82,15 @@ if __name__ == "__main__":
         input_images = torch.stack([img1,img2], dim=0)
         # add dimension for batch size
         input_images = input_images.unsqueeze(0)
-        prediction = model(input_images)
-        print(prediction.max(), prediction.min())        
+        prediction = model(input_images)*5
 
         # remove added dimension for batch size
         prediction = prediction.squeeze(0).cpu().detach().numpy()
         prediction = np.transpose(prediction, (1,2,0))# * 10
-        print(prediction.max(), prediction.min())        
-        flow_img = flow_viz.flow_to_image(prediction)
-        output_path = os.path.join(args.output, 'flow_{}.png'.format(i))
-        cv2.imwrite(output_path, flow_img[:, :, [2,1,0]])
-        generate_vector_visualization(prediction, flow_img, "flow{}".format(i), output_path)
-        list_of_images.append(output_path)
-        # save prediction as file
+       
+        # write prediction to file
+        frame_utils.writeFlow(os.path.join(args.output, 'flow_{}.flo'.format(i)),prediction)
 
-    create_gif(list_of_images,args.output, list_of_images[0].split("/")[-1].replace('.png', ''))
 
     
 

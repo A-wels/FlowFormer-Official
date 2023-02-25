@@ -17,6 +17,7 @@ from myutils.EPELoss import EPELoss
 batch_size = 128
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.utils.tensorboard import SummaryWriter
 
 # Based on FlowNet2: https://arxiv.org/abs/1612.01925
 def conv(in_channels, out_channels, kernel_size=3, stride=1):
@@ -38,7 +39,7 @@ class OpticalFlow2D(nn.Module):
 
         self.fc1 = nn.Linear(1024 * 11 * 4, 1024)
 
-        self.drop = nn.Dropout2d(0.2)
+        self.drop = nn.Dropout2d(0.5)
 
         self.fc2 = nn.Linear(1024, 2 * 127 * 344)
         # define attention layer
@@ -146,10 +147,11 @@ def validate():
     px3 = np.mean(np.array(epe_list) < 3)
     # px5: percentage of pixels with EPE < 5
     px5 = np.mean(np.array(epe_list) < 5)
-
     print("EPE: {:.3f}, px1: {:.3f}, px3: {:.3f}, px5: {:.3f}".format(epe, px1, px3, px5))
+    return epe, px1, px3, px5
  # main method
 if __name__ == '__main__':
+    writer = SummaryWriter(log_dir="logs")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # Define your model
     model = OpticalFlow2D().to(device)
@@ -191,11 +193,12 @@ if __name__ == '__main__':
             # Forward pass
             outputs = model(inputs)
             loss = criterion(outputs, targets)
-
+            # Write log
+            writer.add_scalar("Loss/train", loss, epoch)
             # Backward pass and optimization
             loss.backward()
             optimizer.step()
-
+            
         # Print the loss every X epochs
         if (epoch+1) % 1 == 0:
             print('Epoch [{}/{}], Loss: {:.4f}'.format(epoch+1, epoch_num, loss.item()))
@@ -205,6 +208,16 @@ if __name__ == '__main__':
             print(targets[0].min())
             print(targets[0].max())
             print("\n")
+
+        # Validate every X epochs
+        if (epoch+1)%100 == 0:
+            epe, px1, px3, px5 = validate()
+            writer.add_scalar("EPE", epe, epoch)
+            writer.add_scalar("px1", px1, epoch)
+            writer.add_scalar("px3", px3, epoch)
+            writer.add_scalar("px5", px5, epoch)
+            
+
     # Save the model
-    validate()
+    writer.flush()
     torch.save(model.state_dict(), 'optical_flow_2d.pt')

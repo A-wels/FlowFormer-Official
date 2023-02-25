@@ -13,3 +13,5 @@ checkpoints*
 viz_results
 NN_checkpoints
 *.pt
+*.backup
+
