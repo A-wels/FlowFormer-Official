@@ -22,6 +22,7 @@ import torch.nn.functional as F
 def conv(in_channels, out_channels, kernel_size=3, stride=1):
     return nn.Sequential(
         nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding=(kernel_size - 1) // 2),
+        nn.BatchNorm2d(out_channels),
         nn.LeakyReLU(0.1, inplace=True)
     )
 class OpticalFlow2D(nn.Module):
@@ -32,13 +33,14 @@ class OpticalFlow2D(nn.Module):
         self.conv2 = conv(64, 128, 3, 2)
         self.conv3 = conv(128, 256, 3, 2)
         self.conv4 = conv(256, 512, 3, 2)
-        self.conv5 = conv(512, 512, 3, 2)
+        self.conv5 = conv(512, 1024, 3, 2)
+        self.conv6 = conv(1024,1024,3,2)
 
-        self.fc1 = nn.Linear(512 * 22 * 8, 512)
+        self.fc1 = nn.Linear(1024 * 11 * 4, 1024)
 
         self.drop = nn.Dropout2d(0.2)
 
-        self.fc2 = nn.Linear(512, 2 * 127 * 344)
+        self.fc2 = nn.Linear(1024, 2 * 127 * 344)
         # define attention layer
       #  self.attention = nn.Conv2d(512, 1, 1, 1, 0)
 
@@ -48,7 +50,7 @@ class OpticalFlow2D(nn.Module):
         x = self.conv3(x)
         x = self.conv4(x)
         x = self.conv5(x)
-        #print(x.shape)
+        x = self.conv6(x)
         # compute attention weights for each spatial location
       #  attention_weights = self.attention(x)
         # reshape attention weights to match feature map dimensions
@@ -152,10 +154,11 @@ if __name__ == '__main__':
     # Define your model
     model = OpticalFlow2D().to(device)
     #model = OpticalFlow2D()
-    #model.load_state_dict(torch.load("optical_flow_2d.pt"))
-    model = model.to(device)
-    model = model.cuda()
+
     model = nn.DataParallel(model, [0,1])
+#    model.load_state_dict(torch.load("optical_flow_2d.pt"))
+   # model = model.to(device)
+    model = model.cuda()
     model.train()
 
     # Define a loss function
@@ -163,7 +166,7 @@ if __name__ == '__main__':
     criterion = EPELoss()
 
     # Define an optimizer
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    optimizer = optim.Adam(model.parameters(), lr=0.0001)
     # Load your data into a numpy array of shape (num_samples, 2, 344, 344, 172)
 
 
@@ -177,7 +180,7 @@ if __name__ == '__main__':
     optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=0.0001)
 
     # Train the model
-    epoch_num = 15
+    epoch_num = 1500 
     for epoch in range(epoch_num):
         print("Starting training epoch {} out of {}".format(epoch+1, epoch_num))
         for i, data_blob in tqdm(enumerate(dataloader), total=len(dataloader)):
