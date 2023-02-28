@@ -89,7 +89,7 @@ if __name__ == "__main__":
         prediction = np.transpose(prediction, (1,2,0))# * 10
        
         # write prediction to file
-        frame_utils.writeFlow(os.path.join(args.output, 'flow_{}.flo'.format(i)),prediction)
+        frame_utils.writeFlow(os.path.join(args.output, 'flow_{}.flo'.format(i+2)),prediction)
 
 
     

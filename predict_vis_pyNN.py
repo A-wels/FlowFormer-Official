@@ -91,7 +91,7 @@ if __name__ == "__main__":
         flow_img = flow_viz.flow_to_image(prediction)
         output_path = os.path.join(args.output, 'flow_{}.png'.format(i))
         cv2.imwrite(output_path, flow_img[:, :, [2,1,0]])
-        generate_vector_visualization(prediction, flow_img, "flow{}".format(i), output_path)
+        generate_vector_visualization(prediction, flow_img, "flow{}".format(i+2), output_path)
         list_of_images.append(output_path)
         # save prediction as file
 
