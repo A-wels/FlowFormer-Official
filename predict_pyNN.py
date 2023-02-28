@@ -3,7 +3,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from tqdm import tqdm
-from flowConv2d import OpticalFlow2D
+from flowConv2d import FlowNetS
 from flowConv3d import OpticalFlow3D
 from utils import flow_viz
 import cv2
@@ -13,7 +13,7 @@ import utils.frame_utils as frame_utils
 from utils.frame_utils import read_gen
 
 def load_model(model_path):
-    model = OpticalFlow2D()
+    model = FlowNetS()
     model = nn.DataParallel(model, [0,1])
     model.load_state_dict(torch.load(model_path))
     model.eval()
@@ -82,11 +82,11 @@ if __name__ == "__main__":
         input_images = torch.stack([img1,img2], dim=0)
         # add dimension for batch size
         input_images = input_images.unsqueeze(0)
-        prediction = model(input_images)*5
+        prediction = model(input_images)
 
         # remove added dimension for batch size
         prediction = prediction.squeeze(0).cpu().detach().numpy()
-        prediction = np.transpose(prediction, (1,2,0))# * 10
+        prediction = np.transpose(prediction, (1,2,0))
        
         # write prediction to file
         frame_utils.writeFlow(os.path.join(args.output, 'flow_{}.flo'.format(i+2)),prediction)

@@ -153,17 +153,15 @@ class FlowNetS(nn.Module):
 
         if self.training:
             # upsample output with a factor of 4
-            print(flow2.shape)
             flow2 = self.upsample1(flow2)
             flow3 = self.upsample1(flow3)
             flow4 = self.upsample1(flow4)
             flow5 = self.upsample1(flow5)
             flow6 = self.upsample1(flow6)
-
             return flow2,flow3,flow4,flow5,flow6
         else:
             flow2 = self.upsample1(flow2)
-            return flow2,
+            return flow2
 
 # Define a custom dataset class
 class OpticalFlowDataset(torch.utils.data.Dataset):
@@ -200,7 +198,6 @@ class OpticalFlowDataset(torch.utils.data.Dataset):
             img2 = read_gen(self.image_list[index][1])
 
             flow = np.array(flow).astype(np.float32)
-            flow = np.transpose(flow, (1, 0, 2))
             img1 = np.array(img1).astype(np.uint8)
             img2 = np.array(img2).astype(np.uint8)
 
@@ -214,13 +211,14 @@ class OpticalFlowDataset(torch.utils.data.Dataset):
 
             img1 = torch.from_numpy(img1).float()
             img2 = torch.from_numpy(img2).float()
-            flow = torch.from_numpy(flow).permute(2, 1, 0).float() 
+            flow = torch.from_numpy(flow).float() 
 
             if valid is not None:
                 valid = torch.from_numpy(valid)
             else:
                 valid = (flow[0].abs() < 1000) & (flow[1].abs() < 1000)
             input_images = torch.stack([img1,img2], dim=0)
+            flow = flow.permute(2, 0, 1)
             return input_images, flow, valid.float()
 
 def validate(model):

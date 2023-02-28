@@ -3,17 +3,18 @@ import numpy as np
 import torch
 import torch.nn as nn
 from tqdm import tqdm
-from flowConv2d import OpticalFlow2D
+from flowConv2d import FlowNetS
 from flowConv3d import OpticalFlow3D
 from utils import flow_viz
 import cv2
+from utils import frame_utils
 from visualize_gt_flow import create_gif, generate_vector_visualization
 import os
 
 from utils.frame_utils import read_gen
 
 def load_model(model_path):
-    model = OpticalFlow2D()
+    model = FlowNetS()
     model = nn.DataParallel(model, [0,1])
     model.load_state_dict(torch.load(model_path))
     model.eval()
@@ -37,8 +38,8 @@ def load_demo_data(input_path):
         img1 = np.array(img1).astype(np.uint8)
         img2 = np.array(img2).astype(np.uint8)
 
-        img1 = torch.from_numpy(img1).permute(1, 0).float()
-        img2 = torch.from_numpy(img2).permute(1, 0).float()
+        img1 = torch.from_numpy(img1).float()
+        img2 = torch.from_numpy(img2).float()
 
         vector_fields.append([img1, img2])
     return vector_fields
@@ -57,6 +58,8 @@ if __name__ == "__main__":
     print("Using device: {}".format(device))
     # load model
     model = load_model(args.model_path).to(device)
+    # set model for inference
+    model.eval()
 
     # check if model is running on GPU
     if next(model.parameters()).is_cuda:
@@ -82,11 +85,12 @@ if __name__ == "__main__":
         input_images = torch.stack([img1,img2], dim=0)
         # add dimension for batch size
         input_images = input_images.unsqueeze(0)
-        prediction = model(input_images)*5
+        prediction = model(input_images)
 
         # remove added dimension for batch size
         prediction = prediction.squeeze(0).cpu().detach().numpy()
-        prediction = np.transpose(prediction, (1,2,0))
+
+        prediction = np.transpose(prediction, (2,1,0))
 
         flow_img = flow_viz.flow_to_image(prediction)
         output_path = os.path.join(args.output, 'flow_{}.png'.format(i))
@@ -94,6 +98,7 @@ if __name__ == "__main__":
         generate_vector_visualization(prediction, flow_img, "flow{}".format(i+2), output_path)
         list_of_images.append(output_path)
         # save prediction as file
+        frame_utils.writeFlow(os.path.join(args.output, 'flow_{}.flo'.format(i+2)),prediction)
 
     create_gif(list_of_images,args.output, list_of_images[0].split("/")[-1].replace('.png', ''))
 
