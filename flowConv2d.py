@@ -153,14 +153,14 @@ class FlowNetS(nn.Module):
 
         if self.training:
             # upsample output with a factor of 4
-            flow2 = self.upsample1(flow2)
-            flow3 = self.upsample1(flow3)
-            flow4 = self.upsample1(flow4)
-            flow5 = self.upsample1(flow5)
-            flow6 = self.upsample1(flow6)
+            flow2 = self.upsample1(flow2)[:,:,0:344,0:127]
+            flow3 = self.upsample1(flow3)[:,:,0:344,0:127]
+            flow4 = self.upsample1(flow4)[:,:,0:344,0:127]
+            flow5 = self.upsample1(flow5)[:,:,0:344,0:127]
+            flow6 = self.upsample1(flow6)[:,:,0:344,0:127]
             return flow2,flow3,flow4,flow5,flow6
         else:
-            flow2 = self.upsample1(flow2)
+            flow2 = self.upsample1(flow2)[:,:,0:344,0:127]
             return flow2
 
 # Define a custom dataset class
@@ -232,7 +232,7 @@ def validate(model):
             (inputs, targets,_ ) = [x.cuda() for x in data_blob]            
             output = model(inputs)
             # use the first output for loss
-            output_cropped = outputs[0][:,:,0:344,0:127]
+            output_cropped = outputs[0]
             epe = criterion(output_cropped, targets)
             epe_list.append(epe.detach().cpu())
     print(len(epe_list))
@@ -302,7 +302,7 @@ if __name__ == '__main__':
             # Forward pass
             outputs = model(inputs)
 
-            output_cropped = outputs[0][:,:,0:344,0:127]
+            output_cropped = outputs[0]
             loss = criterion(output_cropped, targets)
             # Write log
             writer.add_scalar("Loss/train", loss, epoch)

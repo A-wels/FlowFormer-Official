@@ -86,19 +86,17 @@ if __name__ == "__main__":
         # add dimension for batch size
         input_images = input_images.unsqueeze(0)
         prediction = model(input_images)
-
         # remove added dimension for batch size
         prediction = prediction.squeeze(0).cpu().detach().numpy()
 
         prediction = np.transpose(prediction, (2,1,0))
 
+        frame_utils.writeFlow(os.path.join(args.output, 'flow_{}.flo'.format(i+2)),prediction)
         flow_img = flow_viz.flow_to_image(prediction)
         output_path = os.path.join(args.output, 'flow_{}.png'.format(i))
-        cv2.imwrite(output_path, flow_img[:, :, [2,1,0]])
+        cv2.imwrite(output_path, flow_img[:, :, :])
         generate_vector_visualization(prediction, flow_img, "flow{}".format(i+2), output_path)
         list_of_images.append(output_path)
-        # save prediction as file
-        frame_utils.writeFlow(os.path.join(args.output, 'flow_{}.flo'.format(i+2)),prediction)
 
     create_gif(list_of_images,args.output, list_of_images[0].split("/")[-1].replace('.png', ''))
 

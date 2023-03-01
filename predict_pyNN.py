@@ -37,8 +37,8 @@ def load_demo_data(input_path):
         img1 = np.array(img1).astype(np.uint8)
         img2 = np.array(img2).astype(np.uint8)
 
-        img1 = torch.from_numpy(img1).permute(1, 0).float()
-        img2 = torch.from_numpy(img2).permute(1, 0).float()
+        img1 = torch.from_numpy(img1).float()
+        img2 = torch.from_numpy(img2).float()
 
         vector_fields.append([img1, img2])
     return vector_fields
@@ -86,8 +86,8 @@ if __name__ == "__main__":
 
         # remove added dimension for batch size
         prediction = prediction.squeeze(0).cpu().detach().numpy()
-        prediction = np.transpose(prediction, (1,2,0))
-       
+        prediction = np.transpose(prediction, (2,1,0))
+
         # write prediction to file
         frame_utils.writeFlow(os.path.join(args.output, 'flow_{}.flo'.format(i+2)),prediction)
 
