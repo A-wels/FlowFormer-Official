@@ -13,7 +13,7 @@ RUN apt-get update && \
         apt-get install -y git && \
         apt-get install -y neovim && \
 	apt-get install -y libgl1-mesa-glx && \
-	apt-get install -y zsh
+	apt-get install -y zsh && \
         apt-get clean && \
         rm -rf /var/lib/apt/lists/*
 
